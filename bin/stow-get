@@ -1,0 +1,372 @@
+#!/usr/bin/env bash
+
+## Description {{{
+#
+# Package manager with stow.
+#
+STOW_GET_VERSION=v0.0.1
+STOW_GET_DATE="1/May/2017"
+#
+# }}}
+
+#The MIT License (MIT) {{{
+#
+#Copyright (c) 2017 rcmdnk
+#
+#Permission is hereby granted, free of charge, to any person obtaining a copy
+#of this software and associated documentation files (the "Software"), to deal
+#in the Software without restriction, including without limitation the rights
+#to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#copies of the Software, and to permit persons to whom the Software is
+#furnished to do so, subject to the following conditions:
+#
+#The above copyright notice and this permission notice shall be included in all
+#copies or substantial portions of the Software.
+#
+#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+#SOFTWARE.
+# }}}
+
+
+# Default variables {{{
+function set_default {
+  INST_DIR=$HOME/usr/local
+  SCRIPT_DIR=$(cd "$(dirname "$0")";pwd)
+  CONF_DIR="$SCRIPT_DIR/../share/stow-get"
+  STOW_DIR="$INST_DIR/stow"
+  CONF_FILE="$HOME/.stow-get"
+  FORCE=0
+  PACKAGES=()
+  VERBOSE=0
+  HELP="
+Usage: stow-get [-fVvh] [-c <conf file>] [-d <conf dir>] [-i <inst dir> ] [package [package [...]]]
+
+Arguments:
+   -c <conf file>  Configuration file (default: $CONF_FILE).
+   -d <conf dir>   Directory which has package configuration files (default: $CONF_DIR).
+   -i <inst dir>   Directory to install packages (default: $INST_DIR).
+   -f              Force to re-install.
+   -V              Verbose mode.
+   -v              Show version.
+   -h              Show this help.
+"
+}
+set_default
+# }}}
+
+# Prepare tmp dir/path {{{
+TMP_DIR=$(mktemp -d)
+trap 'rm -rf "$TMP_DIR"' HUP INT QUIT ABRT SEGV TERM
+export PATH=$INST_DIR/bin:$PATH
+# }}}
+
+# Check argumetns {{{
+while getopts c:d:i:fVvh OPT;do
+  case $OPT in
+    "c" ) CONF_FILE="$OPTARG" ;;
+    "d" ) CONF_DIR="$OPTARG" ;;
+    "i" ) INST_DIR="$OPTARG" ;;
+    "f" ) FORCE=1 ;;
+    "V" ) VERBOSE=1 ;;
+    "v" ) echo "$(basename "$0") $STOW_GET_VERSION $STOW_GET_DATE"; exit 0;;
+    "h" ) set_default; echo "$HELP";exit 0;;
+    * ) echo "Check \"$(basename "$0") -h\" for more information" >/dev/tty;exit 1;;
+
+  esac
+done
+shift $((OPTIND - 1))
+# }}}
+
+# Read configuration {{{
+if [ -f "$CONF_FILE" ];then
+  source "$CONF_FILE"
+fi
+if [ "$#" -ne 0 ];then
+  PACKAGES=("$@")
+fi
+# }}}
+
+# Global variables for installation {{{
+function reset_inst_val {
+  version=""
+  target=""
+  url_prefix=""
+  tarball=""
+  directory=""
+  before_configure=""
+  configure="./configure"
+  config_options=""
+
+  bin_dep=()
+  lib_dep=()
+
+
+  unset stow_install
+  function make_cmd {
+    make all && make install
+  }
+}
+reset_inst_val
+# }}}
+
+# functions {{{
+
+function banner { ## {{{
+  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  echo "$@"
+  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  echo
+} ## }}}
+
+function err { ## {{{
+  echo
+  printf "\e[31m"
+  banner "ERROR: $*"
+  printf "\e[m"
+  return 1
+} ## }}}
+
+function cd_check { ## {{{
+  dir="$1"
+  no_exit="$2"
+  if [ -d "$dir" ];then
+    cd "$dir"
+  else
+    err "$dir is not a directory."
+    if [ "$no_exit" = "" ];then
+      exit 1
+    fi
+  fi
+
+} ## }}}
+
+check_bin () {
+  type -a $1 >/dev/null 2>&1
+}
+
+check_lib () {
+  IFS_ORIG=$IFS
+  IFS=$'\n'
+  pathes=($(echo $LD_LIBRARY_PATH|sed s/:/\\$'\n'/g))
+  IFS=$IFS_ORIG
+  for d in "${pathes[@]}";do
+    if [ -f "$d/${1}.so" ] || [ -f "$d/${1}.a" ];then
+      return 0
+    fi
+  done
+  return 1
+}
+
+get_tarball () {
+  wget --no-check-certificate "$1"
+  ret=$?
+  if [ $ret -ne 0 ];then
+    return $ret
+  fi
+  if echo "$1"|grep -q "tar.gz$";then
+    tar xzf "${1##*/}"
+  elif echo $tarball|grep -q "tar.xz$";then
+    tar Jxf "${1##*/}"
+  elif echo $tarball|grep -q "tar.bz2$";then
+    tar jxf "${1##*/}"
+  fi
+}
+
+function stow_install_tarball { ## {{{
+  if [ "$tarball" = "" ];then
+    tarball=${target}.tar.gz
+  fi
+  if [ "$directory" = "" ];then
+    directory=${target}
+  fi
+
+  get_tarball "$url_prefix/$tarball"
+  ret=$?
+  if [ $ret -ne 0 ];then
+    return $ret
+  fi
+
+  cd_check "$directory" 1
+  ret=$?
+  if [ $ret -ne 0 ];then
+    return $ret
+  fi
+
+  eval "$before_configure"
+  ret=$?
+  if [ $ret -ne 0 ];then
+    return $ret
+  fi
+
+  if [ "$configure" != "" ];then
+    CFLAGS="-L$INST_DIR/lib -I$INST_DIR/include" \
+      CPPFLAGS="-L$INST_DIR/lib -I$INST_DIR/include" \
+      LDFLAGS="-L$INST_DIR/lib" \
+      "$configure" --prefix="$STOW_DIR/$target" "$config_options"
+    ret=$?
+    if [ $ret -ne 0 ];then
+      return $ret
+    fi
+  fi
+
+  make_cmd
+} ## }}}
+
+function stow_install_gnu { ## {{{
+  if [ "$url_prefix" = "" ];then
+    url_prefix=http://ftp.gnu.org/gnu/$package
+  fi
+  stow_install_tarball
+} ## }}}
+
+function stow_install_github { ## {{{
+  if [ "$tarball" = "" ];then
+    tarball=v${version}.tar.gz
+  fi
+  if [ "$url_prefix" = "" ];then
+    url_prefix=https://github.com/$package/$package/archive
+  fi
+  stow_install_tarball
+} ## }}}
+# }}} functions
+
+# Check stow {{{
+if ! type -a stow >/dev/null 2>&1;then
+  PACKAGES=(stow "${PACKAGES[@]}")
+fi
+# }}}
+
+# Dependency check {{{
+i=0
+while [ "$i" -lt "${#PACKAGES[@]}" ];do
+  package="${PACKAGES[$i]}"
+  reset_inst_val
+  conf="$CONF_DIR/${package}.sh"
+  if [ ! -f "$conf" ];then
+    err "No configuration file for $package is found."
+    exit 1
+  fi
+  source "$conf"
+  deps=0
+  j=0
+  while [ "$j" -lt ${#bin_dep[@]} ];do
+    p=${bin_dep[j+1]}
+    if [ "$p" = "" ];then
+      err "Configuration file for $p has wrong bin_dep definition."
+      exit 1
+    fi
+    if ! check_bin "${bin_dep[j]}";then
+      if ! echo " ${PACKAGES[*]} "|grep -q " $p ";then
+        PACKAGES=($(echo " ${PACKAGES[*]} "|sed 's/ $package / $p $package /'))
+        deps=1
+      fi
+    fi
+    j=$((j+2))
+  done
+  j=0
+  while [ "$j" -lt ${#lib_dep[@]} ];do
+    p=${lib_dep[j+1]}
+    if [ "$p" = "" ];then
+      err "Configuration file for $p has wrong lib_dep definition."
+      exit 1
+    fi
+    if ! check_lib "${lib_dep[j]}";then
+      if ! echo " ${PACKAGES[*]} "|grep -q " $p ";then
+        PACKAGES=($(echo " ${PACKAGES[*]} "|sed 's/ $package / $p $package /'))
+        deps=1
+      fi
+    fi
+    j=$((j+2))
+  done
+  if [ $deps -eq 0 ];then
+    ((i++))
+  fi
+done
+# }}}
+#echo "${PACKAGES[@]}"
+#exit
+
+# Main loop {{{
+for package in "${PACKAGES[@]}";do
+  reset_inst_val
+  conf="$CONF_DIR/${package}.sh"
+  if [ ! -f "$conf" ];then
+    err "No configuration file for $package is found."
+    exit 1
+  fi
+
+  source "$conf"
+  if [ "$version" = "" ];then
+    err "version is not defined for $package."
+    exit 1
+  fi
+  if ! eval type -a stow_install > /dev/null 2>&1;then
+    err "stow_install is not defined for $package."
+    exit 1
+  fi
+
+  if [ "${target}" = "" ];then
+    target=${package}-${version}
+  fi
+
+  if [ -d "$STOW_DIR/$target" ];then
+    if [ "$FORCE" -eq 1 ];then
+      cd_check "$STOW_DIR"
+      stow -D "$target"
+      rm -rf "$target"
+    else
+      if [ "$VERBOSE" -eq 1 ];then
+        banner "$target was already installed."
+      fi
+      cd_check "$STOW_DIR"
+      stow --ignore="share/info/dir" "$target"
+      continue
+    fi
+  fi
+
+  cd_check "$TMP_DIR"
+
+  banner "Installing $package"
+
+  if [ "$VERBOSE" -eq 1 ];then
+    stow_install
+  else
+    log=$(stow_install 2>&1)
+  fi
+  ret=$?
+
+  if [ $ret -ne 0 ];then
+    if [ "$VERBOSE" -eq 0 ];then
+      echo "$log"
+    fi
+    err "Failed to install $package"
+    exit $ret
+  fi
+
+  cd_check "$STOW_DIR"
+
+  if [ "$package" = "stow" ];then
+    export PATH=$STOW_DIR/$target/bin:$PATH
+  fi
+
+  # Delte old stow
+  stow -D ${package}-*
+
+  # Install. ignore share/info/dir which causes a conflict sometime.
+  stow --ignore="share/info/dir" "$target"
+  ret=$?
+  if [ $ret -ne 0 ];then
+    err "Failed to place by stow."
+    exit $ret
+  fi
+done # }}}
+
+# Remove tmp dir {{{
+rm -rf "$TMP_DIR"
+# }}}
+
