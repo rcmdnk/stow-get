@@ -247,6 +247,28 @@ function stow_install_github_direct { ## {{{
   }
   stow_install_tarball
 } ## }}}
+
+function stow_install_wrapper { ## {{{
+  if [ "$type" = "tarball" ];then
+    stow_install_tarball
+  elif [ "$type" = "gnu" ];then
+    stow_install_gnu
+  elif [ "$type" = "github" ];then
+    stow_install_github
+  elif [ "$type" = "github_direct" ];then
+    stow_install_github_direct
+  elif [ "$type" != "" ];then
+    err "Invalid type: $type"
+    return 1
+  else
+    if ! eval type -a stow_install > /dev/null 2>&1;then
+      err "Neither type nor stow_install is not defined for $package."
+      return 1
+    fi
+    stow_install
+  fi
+} ## }}}
+
 # }}} functions
 
 # Check stow {{{
@@ -319,10 +341,6 @@ for package in "${PACKAGES[@]}";do
     err "version is not defined for $package."
     exit 1
   fi
-  if ! eval type -a stow_install > /dev/null 2>&1;then
-    err "stow_install is not defined for $package."
-    exit 1
-  fi
 
   if [ "${target}" = "" ];then
     target=${package}-${version}
@@ -348,9 +366,9 @@ for package in "${PACKAGES[@]}";do
   banner "Installing $package"
 
   if [ "$VERBOSE" -eq 1 ];then
-    stow_install
+    stow_install_wrapper
   else
-    log=$(stow_install 2>&1)
+    log=$(stow_install _wrapper2>&1)
   fi
   ret=$?
 

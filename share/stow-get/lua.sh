@@ -1,4 +1,5 @@
 version=5.3.4
+type=tarball
 url_prefix=http://www.lua.org/ftp/
 configure=""
 plathome=linux
@@ -17,7 +18,4 @@ function make_cmd {
   make $plathome MYLIBS=" -ltermcap" MYLDFLAGS=" -L$INST_DIR/lib" MYCFLAGS=" \
     -I$INST_DIR/usr/local/include"
   make install INSTALL_TOP="$STOW_DIR/lua-$version"
-}
-function stow_install {
-  stow_install_tarball
 }
