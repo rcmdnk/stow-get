@@ -233,6 +233,20 @@ function stow_install_github { ## {{{
   fi
   stow_install_tarball
 } ## }}}
+
+function stow_install_github_direct { ## {{{
+  if [ "$tarball" = "" ];then
+    tarball=v${version}.tar.gz
+  fi
+  if [ "$url_prefix" = "" ];then
+    url_prefix=https://github.com/$package/$package/archive
+  fi
+  configure=""
+  function make_cmd {
+    cp -r . "$STOW_DIR/$target"
+  }
+  stow_install_tarball
+} ## }}}
 # }}} functions
 
 # Check stow {{{
@@ -355,7 +369,7 @@ for package in "${PACKAGES[@]}";do
   fi
 
   # Delte old stow
-  stow -D ${package}-*
+  #stow -D ${package}-*
 
   # Install. ignore share/info/dir which causes a conflict sometime.
   stow --ignore="share/info/dir" "$target"
