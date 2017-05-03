@@ -1,3 +1,3 @@
 version=2.13.0-rc1
-type=github
+inst_type=github
 before_configure="make configure"

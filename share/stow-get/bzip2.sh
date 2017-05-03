@@ -1,5 +1,5 @@
 version=1.0.6
-type=tarball
+inst_type=tarball
 url_prefix=http://www.bzip.org/$version
 configure=""
 function make_cmd {

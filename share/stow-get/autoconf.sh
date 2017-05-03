@@ -1,2 +1,2 @@
 version=2.69
-type=gnu
+inst_type=gnu

@@ -1,2 +1,2 @@
 version=2.2.2
-type=tnu
+inst_type=tnu

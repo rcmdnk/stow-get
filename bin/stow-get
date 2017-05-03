@@ -9,91 +9,58 @@ STOW_GET_DATE="1/May/2017"
 #
 # }}}
 
-#The MIT License (MIT) {{{
+# The MIT License (MIT) {{{
 #
-#Copyright (c) 2017 rcmdnk
+# Copyright (c) 2017 rcmdnk
 #
-#Permission is hereby granted, free of charge, to any person obtaining a copy
-#of this software and associated documentation files (the "Software"), to deal
-#in the Software without restriction, including without limitation the rights
-#to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#copies of the Software, and to permit persons to whom the Software is
-#furnished to do so, subject to the following conditions:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to
+# deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-#The above copyright notice and this permission notice shall be included in all
-#copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
-#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-#SOFTWARE.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 # }}}
 
+# Fixed values {{{
+EXIT_WRONG_ARG=100
+EXIT_UNKNOWN_COMMAND=101
+EXIT_NO_PACKAEGE=102
+EXIT_CD_FAIL=103
+EXIT_WRONG_BIN_DEP=104
+EXIT_WRONG_LIB_DEP=105
+EXIT_NO_PAC_CONF=106
+EXIT_NO_VERSION=107
+# }}}
 
 # Default variables {{{
 function set_default {
-  INST_DIR=$HOME/usr/local
-  SCRIPT_DIR=$(cd "$(dirname "$0")";pwd)
-  CONF_DIR="$SCRIPT_DIR/../share/stow-get"
-  STOW_DIR="$INST_DIR/stow"
-  CONF_FILE="$HOME/.stow-get"
-  FORCE=0
-  PACKAGES=()
-  VERBOSE=0
-  HELP="
-Usage: stow-get [-fVvh] [-c <conf file>] [-d <conf dir>] [-i <inst dir> ] [package [package [...]]]
-
-Arguments:
-   -c <conf file>  Configuration file (default: $CONF_FILE).
-   -d <conf dir>   Directory which has package configuration files (default: $CONF_DIR).
-   -i <inst dir>   Directory to install packages (default: $INST_DIR).
-   -f              Force to re-install.
-   -V              Verbose mode.
-   -v              Show version.
-   -h              Show this help.
-"
+  inst_dir=$HOME/usr/local
+  script_dir=$(cd "$(dirname "$0")";pwd)
+  conf_dir="$script_dir/../share/stow-get"
+  stow_dir="$inst_dir/stow"
+  conf_file="$HOME/.stow-get"
+  force=0
+  packages=()
+  verbose=0
 }
 set_default
-# }}}
-
-# Prepare tmp dir/path {{{
-TMP_DIR=$(mktemp -d)
-trap 'rm -rf "$TMP_DIR"' HUP INT QUIT ABRT SEGV TERM
-export PATH=$INST_DIR/bin:$PATH
-# }}}
-
-# Check argumetns {{{
-while getopts c:d:i:fVvh OPT;do
-  case $OPT in
-    "c" ) CONF_FILE="$OPTARG" ;;
-    "d" ) CONF_DIR="$OPTARG" ;;
-    "i" ) INST_DIR="$OPTARG" ;;
-    "f" ) FORCE=1 ;;
-    "V" ) VERBOSE=1 ;;
-    "v" ) echo "$(basename "$0") $STOW_GET_VERSION $STOW_GET_DATE"; exit 0;;
-    "h" ) set_default; echo "$HELP";exit 0;;
-    * ) echo "Check \"$(basename "$0") -h\" for more information" >/dev/tty;exit 1;;
-
-  esac
-done
-shift $((OPTIND - 1))
-# }}}
-
-# Read configuration {{{
-if [ -f "$CONF_FILE" ];then
-  source "$CONF_FILE"
-fi
-if [ "$#" -ne 0 ];then
-  PACKAGES=("$@")
-fi
 # }}}
 
 # Global variables for installation {{{
 function reset_inst_val {
   version=""
+  inst_type=""
   target=""
   url_prefix=""
   tarball=""
@@ -116,15 +83,43 @@ reset_inst_val
 
 # functions {{{
 
+function show_help { # {{{
+  ret="$1"
+  set_default
+  echo "
+Usage: stow-get <sub command> [-fVvh] [-c <conf file>] [-d <conf dir>] [-i <inst dir> ] [package [package [...]]]
+
+Sub commands:
+   install [package [package...]]
+                  Install packages (all packages in the configuration file if no package is given).
+   uninstall <package>
+                  Remove package.
+   rm/remove      Aliases of uninstall.
+   info <package> Show configuration file of package.
+   version        Show version.
+   help           Show this help.
+
+Arguments:
+   -c <conf file> Configuration file (default: $conf_file).
+   -d <conf dir>  Directory which has package configuration files (default: $conf_dir).
+   -i <inst dir>  Directory to install packages (default: $inst_dir).
+   -f             Force to re-install.
+   -V             Verbose mode.
+   -v             Show version.
+   -h             Show this help.
+"
+  if [ "$ret" != "" ];then
+    exit "$ret"
+  fi
+} ## }}}
+
 function banner { ## {{{
-  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  echo "####################################################################"
   echo "$@"
-  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-  echo
+  echo "####################################################################"
 } ## }}}
 
 function err { ## {{{
-  echo
   printf "\e[31m"
   banner "ERROR: $*"
   printf "\e[m"
@@ -134,25 +129,29 @@ function err { ## {{{
 function cd_check { ## {{{
   dir="$1"
   no_exit="$2"
-  if [ -d "$dir" ];then
-    cd "$dir"
-  else
-    err "$dir is not a directory."
-    if [ "$no_exit" = "" ];then
-      exit 1
-    fi
-  fi
-
+  cd "$dir" || err "can not cd to $dir."; \
+               if [ "$no_exit" = "" ];then \
+                 exit $EXIT_CD_FAIL; \
+               fi
 } ## }}}
 
-check_bin () {
-  type -a $1 >/dev/null 2>&1
-}
+function get_pac_conf { # {{{
+  conf="$conf_dir/${1}.sh"
+  if [ ! -f "$conf" ];then
+    err "No configuration file for $1 is found."
+    exit $EXIT_NO_PAC_CONF
+  fi
+  echo "$conf"
+} # }}}
 
-check_lib () {
+function check_bin { ## {{{
+  type -a "$1" >/dev/null 2>&1
+} ## }}}
+
+function check_lib { # {{{
   IFS_ORIG=$IFS
   IFS=$'\n'
-  pathes=($(echo $LD_LIBRARY_PATH|sed s/:/\\$'\n'/g))
+  pathes=(${LD_LIBRARY_PATH//:/$'\n'})
   IFS=$IFS_ORIG
   for d in "${pathes[@]}";do
     if [ -f "$d/${1}.so" ] || [ -f "$d/${1}.a" ];then
@@ -160,9 +159,9 @@ check_lib () {
     fi
   done
   return 1
-}
+} # }}}
 
-get_tarball () {
+function get_tarball  { # {{{
   wget --no-check-certificate "$1"
   ret=$?
   if [ $ret -ne 0 ];then
@@ -175,7 +174,7 @@ get_tarball () {
   elif echo $tarball|grep -q "tar.bz2$";then
     tar jxf "${1##*/}"
   fi
-}
+} # }}}
 
 function stow_install_tarball { ## {{{
   if [ "$tarball" = "" ];then
@@ -204,10 +203,10 @@ function stow_install_tarball { ## {{{
   fi
 
   if [ "$configure" != "" ];then
-    CFLAGS="-L$INST_DIR/lib -I$INST_DIR/include" \
-      CPPFLAGS="-L$INST_DIR/lib -I$INST_DIR/include" \
-      LDFLAGS="-L$INST_DIR/lib" \
-      "$configure" --prefix="$STOW_DIR/$target" "$config_options"
+    CFLAGS="-L$inst_dir/lib -I$inst_dir/include" \
+      CPPFLAGS="-L$inst_dir/lib -I$inst_dir/include" \
+      LDFLAGS="-L$inst_dir/lib" \
+      "$configure" --prefix="$stow_dir/$target" "$config_options"
     ret=$?
     if [ $ret -ne 0 ];then
       return $ret
@@ -243,22 +242,22 @@ function stow_install_github_direct { ## {{{
   fi
   configure=""
   function make_cmd {
-    cp -r . "$STOW_DIR/$target"
+    cp -r . "$stow_dir/$target"
   }
   stow_install_tarball
 } ## }}}
 
 function stow_install_wrapper { ## {{{
-  if [ "$type" = "tarball" ];then
+  if [ "$inst_type" = "tarball" ];then
     stow_install_tarball
-  elif [ "$type" = "gnu" ];then
+  elif [ "$inst_type" = "gnu" ];then
     stow_install_gnu
-  elif [ "$type" = "github" ];then
+  elif [ "$inst_type" = "github" ];then
     stow_install_github
-  elif [ "$type" = "github_direct" ];then
+  elif [ "$inst_type" = "github_direct" ];then
     stow_install_github_direct
-  elif [ "$type" != "" ];then
-    err "Invalid type: $type"
+  elif [ "$inst_type" != "" ];then
+    err "Invalid inst_type: $inst_type"
     return 1
   else
     if ! eval type -a stow_install > /dev/null 2>&1;then
@@ -271,22 +270,81 @@ function stow_install_wrapper { ## {{{
 
 # }}} functions
 
+# Check argumetns {{{
+while getopts c:d:i:fVvh OPT;do
+  case $OPT in
+    "c" ) conf_file="$OPTARG" ;;
+    "d" ) conf_dir="$OPTARG" ;;
+    "i" ) inst_dir="$OPTARG" ;;
+    "f" ) force=1 ;;
+    "V" ) verbose=1 ;;
+    "v" ) echo "$(basename "$0") $STOW_GET_VERSION $STOW_GET_DATE"; exit 0;;
+    "h" ) show_help 0;;
+    * ) echo "Check \"$(basename "$0") -h\" for more information" >/dev/tty;exit $EXIT_WRONG_ARG;;
+
+  esac
+done
+shift $((OPTIND - 1))
+
+COMMANDS=(install rm remove uninstall info help version)
+
+if [ "$#" -eq 0 ] || [ "$1" = "help" ];then
+  show_help 0
+elif [ "$1" = "version" ];then
+  echo "$(basename "$0") $STOW_GET_VERSION $STOW_GET_DATE"
+  exit 0
+fi
+
+if ! echo " ${COMMANDS[*]} "|grep -q " $1 ";then
+  err "Unknown command: $1"
+  exit $EXIT_UNKNOWN_COMMAND
+fi
+command=$1
+shift
+if [ "$command" = "rm" ] || [ "$command" = "remove" ];then
+  command="uninstall"
+fi
+
+if [ "$command" = "uninstall" ] || [ "$command" = "info" ];then
+  if [ "$#" -eq 0 ];then
+    err "Need <package> argument for $command command."
+    exit $EXIT_NO_PACKAEGE
+  fi
+fi
+
+# }}}
+
+# Read configuration {{{
+if [ -f "$conf_file" ];then
+  source "$conf_file"
+fi
+if [ "$#" -ne 0 ];then
+  packages=("$@")
+fi
+# }}}
+
+# Info {{{
+if [ "$command" = "info" ];then
+  for package in "${packages[@]}";do
+    conf=$(get_pac_conf "$package")
+  done
+  banner "Configuration for $package"
+  cat "$conf"
+fi
+# }}}
+
 # Check stow {{{
 if ! type -a stow >/dev/null 2>&1;then
-  PACKAGES=(stow "${PACKAGES[@]}")
+  packages=(stow "${packages[@]}")
 fi
 # }}}
 
 # Dependency check {{{
 i=0
-while [ "$i" -lt "${#PACKAGES[@]}" ];do
-  package="${PACKAGES[$i]}"
+while [ "$i" -lt "${#packages[@]}" ];do
+  package="${packages[$i]}"
   reset_inst_val
-  conf="$CONF_DIR/${package}.sh"
-  if [ ! -f "$conf" ];then
-    err "No configuration file for $package is found."
-    exit 1
-  fi
+  conf=$(get_pac_conf "$package")
   source "$conf"
   deps=0
   j=0
@@ -294,11 +352,11 @@ while [ "$i" -lt "${#PACKAGES[@]}" ];do
     p=${bin_dep[j+1]}
     if [ "$p" = "" ];then
       err "Configuration file for $p has wrong bin_dep definition."
-      exit 1
+      exit $EXIT_WRONG_BIN_DEP
     fi
     if ! check_bin "${bin_dep[j]}";then
-      if ! echo " ${PACKAGES[*]} "|grep -q " $p ";then
-        PACKAGES=($(echo " ${PACKAGES[*]} "|sed 's/ $package / $p $package /'))
+      if ! echo " ${packages[*]} "|grep -q " $p ";then
+        packages=($(echo " ${packages[*]} "|sed 's/ $package / $p $package /'))
         deps=1
       fi
     fi
@@ -309,11 +367,11 @@ while [ "$i" -lt "${#PACKAGES[@]}" ];do
     p=${lib_dep[j+1]}
     if [ "$p" = "" ];then
       err "Configuration file for $p has wrong lib_dep definition."
-      exit 1
+      exit $EXIT_WRONG_LIB_DEP
     fi
     if ! check_lib "${lib_dep[j]}";then
-      if ! echo " ${PACKAGES[*]} "|grep -q " $p ";then
-        PACKAGES=($(echo " ${PACKAGES[*]} "|sed 's/ $package / $p $package /'))
+      if ! echo " ${packages[*]} "|grep -q " $p ";then
+        packages=($(echo " ${packages[*]} "|sed 's/ $package / $p $package /'))
         deps=1
       fi
     fi
@@ -324,38 +382,42 @@ while [ "$i" -lt "${#PACKAGES[@]}" ];do
   fi
 done
 # }}}
-#echo "${PACKAGES[@]}"
-#exit
+
+# Prepare tmp dir/path {{{
+TMP_DIR=$(mktemp -d)
+trap 'rm -rf "$TMP_DIR"' EXIT HUP INT QUIT ABRT SEGV TERM
+export PATH=$inst_dir/bin:$PATH
+# }}}
 
 # Main loop {{{
-for package in "${PACKAGES[@]}";do
+for package in "${packages[@]}";do
   reset_inst_val
-  conf="$CONF_DIR/${package}.sh"
+  conf="$conf_dir/${package}.sh"
   if [ ! -f "$conf" ];then
     err "No configuration file for $package is found."
-    exit 1
+    exit $EXIT_NO_PAC_CONF
   fi
 
   source "$conf"
   if [ "$version" = "" ];then
     err "version is not defined for $package."
-    exit 1
+    exit $EXIT_NO_VERSION
   fi
 
   if [ "${target}" = "" ];then
     target=${package}-${version}
   fi
 
-  if [ -d "$STOW_DIR/$target" ];then
-    if [ "$FORCE" -eq 1 ];then
-      cd_check "$STOW_DIR"
+  if [ -d "$stow_dir/$target" ];then
+    if [ "$force" -eq 1 ];then
+      cd_check "$stow_dir"
       stow -D "$target"
       rm -rf "$target"
     else
-      if [ "$VERBOSE" -eq 1 ];then
+      if [ "$verbose" -eq 1 ];then
         banner "$target was already installed."
       fi
-      cd_check "$STOW_DIR"
+      cd_check "$stow_dir"
       stow --ignore="share/info/dir" "$target"
       continue
     fi
@@ -365,7 +427,7 @@ for package in "${PACKAGES[@]}";do
 
   banner "Installing $package"
 
-  if [ "$VERBOSE" -eq 1 ];then
+  if [ "$verbose" -eq 1 ];then
     stow_install_wrapper
   else
     log=$(stow_install _wrapper2>&1)
@@ -373,17 +435,17 @@ for package in "${PACKAGES[@]}";do
   ret=$?
 
   if [ $ret -ne 0 ];then
-    if [ "$VERBOSE" -eq 0 ];then
+    if [ "$verbose" -eq 0 ];then
       echo "$log"
     fi
     err "Failed to install $package"
     exit $ret
   fi
 
-  cd_check "$STOW_DIR"
+  cd_check "$stow_dir"
 
   if [ "$package" = "stow" ];then
-    export PATH=$STOW_DIR/$target/bin:$PATH
+    export PATH=$stow_dir/$target/bin:$PATH
   fi
 
   # Delte old stow
@@ -398,7 +460,5 @@ for package in "${PACKAGES[@]}";do
   fi
 done # }}}
 
-# Remove tmp dir {{{
-rm -rf "$TMP_DIR"
-# }}}
-
+# vim: foldmethod=marker
+# vim: foldmarker={{{,}}}

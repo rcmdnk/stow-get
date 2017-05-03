@@ -1,2 +1,2 @@
 version=1.15
-type=gnu
+inst_type=gnu

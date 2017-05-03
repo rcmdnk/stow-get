@@ -1,5 +1,5 @@
 version=5.3.4
-type=tarball
+inst_type=tarball
 url_prefix=http://www.lua.org/ftp/
 configure=""
 plathome=linux

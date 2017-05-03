@@ -1,2 +1,2 @@
 version=6.3
-type=gnu
+inst_type=gnu

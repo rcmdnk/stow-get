@@ -1,5 +1,5 @@
 version=4.1.3
-type=tarball
+inst_type=tarball
 url_prefix=https://www.mercurial-scm.org/repo/hg/archive
 tarball=${version}.tar.gz
 configure=""
