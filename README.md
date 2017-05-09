@@ -1,2 +1,5 @@
 # stow-get
- Package manager with stow.
+
+[![Build Status](https://travis-ci.org/rcmdnk/stow-get.svg?branch=master)](https://travis-ci.org/rcmdnk/stow-get)
+
+Package manager with stow.
