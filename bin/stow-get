@@ -132,6 +132,12 @@ function banner_v { ## {{{
   fi
 } ## }}}
 
+function warn { ## {{{
+  printf "\e[33m"
+  banner "WARNING: $*"
+  printf "\e[m"
+} ## }}}
+
 function err { ## {{{
   printf "\e[31m" 1>&2
   banner "ERROR: $*" 1>&2
@@ -172,6 +178,7 @@ function source_pac_conf { # {{{
   if [ "$pac_conf" != "" ];then
     source "$pac_conf"
   fi
+  set_target
 } # }}}
 
 function set_version { # {{{
@@ -188,6 +195,12 @@ function set_version { # {{{
 function set_target { # {{{
   set_version
   target=${package}-STOW-${version}
+} # }}}
+
+function clean_package { # {{{
+  cd_check "$stow_dir"
+  stow -D "${package}-STOW-"*
+  rm -rf "${package}-STOW-"*
 } # }}}
 
 function check_bin { ## {{{
@@ -382,7 +395,6 @@ if [ "$command" = "get_latest" ];then
   done
   exit
 fi
-
 # }}}
 
 # Read configuration {{{
@@ -405,14 +417,36 @@ if [ "$command" = "info" ];then
 fi
 # }}}
 
+# Check PATH/LD_LIBRARY_PATH
+if ! echo "$PATH"| grep -q "$inst_dir/bin";then
+  warn "PATH doesn't include $inst_dir/bin,
+which may make a problem to search dependencies or to use stow command."
+fi
+if ! echo "$LD_LIBRARY_PATH"| grep -q "$inst_dir/lib";then
+  warn "LD_LIBRARY_PATH doesn't include $inst_dir/lib,
+which may make a problem to search dependencies."
+fi
+
 # Check stow {{{
 if ! type -a stow >/dev/null 2>&1;then
   packages=(stow "${packages[@]}")
 fi
 # }}}
 
+# Uninstall {{{
+if [ "$command" = "uninstall" ];then
+  for package in "${packages[@]}";do
+    source_pac_conf
+    banner "Uninstalling $stow_dir/${package}-STOW-\*"
+    clean_package
+  done
+  exit
+fi
+# }}}
+
 # Dependency check {{{
 i=0
+pre_packages=()
 while [ "$i" -lt "${#packages[@]}" ];do
   package="${packages[$i]}"
   source_pac_conf
@@ -425,7 +459,10 @@ while [ "$i" -lt "${#packages[@]}" ];do
       exit $EXIT_WRONG_BIN_DEP
     fi
     if ! check_bin "${bin_dep[j]}";then
-      if ! echo " ${packages[*]} "|grep -q " $p ";then
+      if ! echo " ${pre_packages[*]} "|grep -q " $p ";then
+        if echo " ${packages[*]} "|grep -q " $p ";then
+          packages=($(echo " ${packages[*]} "|sed "s/ $p / /"))
+        fi
         packages=($(echo " ${packages[*]} "|sed "s/ $package / $p $package /"))
         deps=1
       fi
@@ -440,7 +477,10 @@ while [ "$i" -lt "${#packages[@]}" ];do
       exit $EXIT_WRONG_LIB_DEP
     fi
     if ! check_lib "${lib_dep[j]}";then
-      if ! echo " ${packages[*]} "|grep -q " $p ";then
+      if ! echo " ${pre_packages[*]} "|grep -q " $p ";then
+        if echo " ${packages[*]} "|grep -q " $p ";then
+          packages=($(echo " ${packages[*]} "|sed "s/ $p / /"))
+        fi
         packages=($(echo " ${packages[*]} "|sed "s/ $package / $p $package /"))
         deps=1
       fi
@@ -448,6 +488,7 @@ while [ "$i" -lt "${#packages[@]}" ];do
     j=$((j+2))
   done
   if [ $deps -eq 0 ];then
+    pre_packages=("${pre_packages[@]}" "$package")
     ((i++))
   fi
 done
@@ -462,7 +503,6 @@ export PATH=$inst_dir/bin:$PATH
 # Main loop {{{
 for package in "${packages[@]}";do
   source_pac_conf
-  set_target
 
   if [ -d "$stow_dir/$target" ];then
     banner_v "$target was already installed."
@@ -476,7 +516,11 @@ for package in "${packages[@]}";do
     else
       if [ $dryrun -eq 0 ];then
         cd_check "$stow_dir"
-        stow --ignore="share/info/dir" "$target"
+        stow_cmd=stow
+        if [ "$package" = "stow" ];then
+          stow_cmd="./$target/bin/stow"
+        fi
+        $stow_cmd --ignore="share/info/dir" "$target"
       fi
       continue
     fi
@@ -490,6 +534,10 @@ for package in "${packages[@]}";do
     continue
   fi
 
+  # Delte old stow package
+  clean_package
+
+  # Install
   if [ "$verbose" -eq 1 ];then
     stow_install_wrapper
   else
@@ -510,9 +558,6 @@ for package in "${packages[@]}";do
   if [ "$package" = "stow" ];then
     export PATH=$stow_dir/$target/bin:$PATH
   fi
-
-  # Delte old stow
-  #stow -D ${package}-*
 
   # Install. ignore share/info/dir which causes a conflict sometime.
   stow --ignore="share/info/dir" "$target"
