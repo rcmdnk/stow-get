@@ -202,7 +202,7 @@ function clean_package { # {{{
   cd_check "$stow_dir" 1 >/dev/null 2>&1
   ret=$?
   if [ $ret -eq 0 ];then
-    local pdirs=$(ls -d "${package}-STOW-"*)
+    local pdirs=$(ls -d "${package}-STOW-"* 2>/dev/null)
     if [ "$pdirs" != "" ];then
       stow -D "${package}-STOW-"*
       rm -rf "${package}-STOW-"*
