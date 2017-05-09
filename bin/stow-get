@@ -45,11 +45,15 @@ EXIT_NOT_GNU=108
 # }}}
 
 # Default variables {{{
+function set_inst_dir {
+  inst_dir="$1"
+  stow_dir="$inst_dir/stow"
+}
+
 function set_default {
-  inst_dir=$HOME/usr/local
+  set_inst_dir "$HOME/usr/local"
   script_dir=$(cd "$(dirname "$0")";pwd)
   conf_dir="$script_dir/../share/stow-get"
-  stow_dir="$inst_dir/stow"
   conf_file="$HOME/.stow-get"
   default_inst_type=""
   force=0
@@ -368,7 +372,7 @@ while getopts c:d:i:t:fDVvh OPT;do
   case $OPT in
     "c" ) conf_file="$OPTARG" ;;
     "d" ) conf_dir="$OPTARG" ;;
-    "i" ) inst_dir="$OPTARG" ;;
+    "i" ) set_inst_dir "$OPTARG" ;;
     "t" ) default_inst_type="$OPTARG" ;;
     "f" ) force=1 ;;
     "D" ) dryrun=1 ;;
