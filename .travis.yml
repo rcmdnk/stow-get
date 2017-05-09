@@ -20,4 +20,4 @@ script:
   - ./bin/stow-get info screen
   - ./bin/stow-get get_latest wget
   - ./bin/stow-get install -t gnu wget
-  - ./bin/stow-get install install -c ./conf_file -d ./conf_dir
+  - ./bin/stow-get install -c ./conf_file -d ./conf_dir
