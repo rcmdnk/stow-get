@@ -50,6 +50,7 @@ function set_default {
   conf_dir="$script_dir/../share/stow-get"
   stow_dir="$inst_dir/stow"
   conf_file="$HOME/.stow-get"
+  default_inst_type=""
   force=0
   packages=()
   verbose=0
@@ -103,6 +104,7 @@ Arguments:
    -c <conf file> Configuration file (default: $conf_file).
    -d <conf dir>  Directory which has package configuration files (default: $conf_dir).
    -i <inst dir>  Directory to install packages (default: $inst_dir).
+   -t <inst type> Set install type: only for install with package name (default: $default_inst_type).
    -f             Force to re-install.
    -V             Verbose mode.
    -v             Show version.
@@ -120,28 +122,45 @@ function banner { ## {{{
 } ## }}}
 
 function err { ## {{{
-  printf "\e[31m"
-  banner "ERROR: $*"
-  printf "\e[m"
+  printf "\e[31m" 1>&2
+  banner "ERROR: $*" 1>&2
+  printf "\e[m" 1>&2
   return 1
 } ## }}}
 
 function cd_check { ## {{{
   dir="$1"
   no_exit="$2"
-  cd "$dir" || err "can not cd to $dir."; \
-               if [ "$no_exit" = "" ];then \
-                 exit $EXIT_CD_FAIL; \
-               fi
+  cd "$dir" || err "can not cd to $dir."
+  ret=$?
+  if [ $ret != 0 ] && [ "$no_exit" = "" ];then
+    exit $EXIT_CD_FAIL
+  fi
 } ## }}}
 
 function get_pac_conf { # {{{
-  conf="$conf_dir/${1}.sh"
-  if [ ! -f "$conf" ];then
-    err "No configuration file for $1 is found."
-    exit $EXIT_NO_PAC_CONF
+  pac_conf="$conf_dir/${1}.sh"
+  is_exit="${2:-1}"
+  if [ ! -f "$pac_conf" ];then
+    if [ "$is_exit" -eq 1 ];then
+      err "No configuration file for $1 is found."
+      exit $EXIT_NO_PAC_CONF
+    fi
+    pac_conf=""
   fi
-  echo "$conf"
+} # }}}
+
+function source_pac_conf { # {{{
+  reset_inst_val
+  is_exit=1
+  if [ "$default_inst_type" != "" ];then
+    inst_type="$default_inst_type"
+    is_exit=0
+  fi
+  get_pac_conf "$package" "$is_exit"
+  if [ "$pac_conf" != "" ];then
+    source "$pac_conf"
+  fi
 } # }}}
 
 function check_bin { ## {{{
@@ -223,6 +242,20 @@ function stow_install_gnu { ## {{{
   stow_install_tarball
 } ## }}}
 
+function get_gnu_latest { ## {{{
+  local p="$1"
+  local output_time="${2:-0}"
+  local url="http://ftp.gnu.org/gnu/$p/?C=M;O=A"
+  local html="$(curl "$url" 2>/dev/null)"
+  local latest="$(printf "$html"|grep "$p"|grep ".tar.gz<"|grep "$1"|grep -v "\-doc\-"|grep -v latest|tail -n1)"
+  local params=$(echo "$latest"|sed 's/<[^>]*>/ /g')
+  if [ "$output_time" -eq 0 ];then
+    echo "$params"|awk -v p="$p" '{sub(p"-", "", $1)}{sub(".tar.gz", "", $1)}{print $1}'
+  else
+    printf "%15s %8s %8s %3s %10s %5s %5s\n" $(echo "$params"|awk -v p="$p" '{sub(p"-", "", $1)}{sub(".tar.gz", "", $1)}{print p " " $1 "    updated at: " $2 " " $3 " " $4}')
+  fi
+} ## }}}
+
 function stow_install_github { ## {{{
   if [ "$tarball" = "" ];then
     tarball=v${version}.tar.gz
@@ -271,22 +304,9 @@ function stow_install_wrapper { ## {{{
 # }}} functions
 
 # Check argumetns {{{
-while getopts c:d:i:fVvh OPT;do
-  case $OPT in
-    "c" ) conf_file="$OPTARG" ;;
-    "d" ) conf_dir="$OPTARG" ;;
-    "i" ) inst_dir="$OPTARG" ;;
-    "f" ) force=1 ;;
-    "V" ) verbose=1 ;;
-    "v" ) echo "$(basename "$0") $STOW_GET_VERSION $STOW_GET_DATE"; exit 0;;
-    "h" ) show_help 0;;
-    * ) echo "Check \"$(basename "$0") -h\" for more information" >/dev/tty;exit $EXIT_WRONG_ARG;;
 
-  esac
-done
-shift $((OPTIND - 1))
-
-COMMANDS=(install rm remove uninstall info help version)
+COMMANDS=(install rm remove uninstall info get_latest help version)
+NEED_ARGS=(uninstall info get_latest)
 
 if [ "$#" -eq 0 ] || [ "$1" = "help" ];then
   show_help 0
@@ -305,11 +325,35 @@ if [ "$command" = "rm" ] || [ "$command" = "remove" ];then
   command="uninstall"
 fi
 
-if [ "$command" = "uninstall" ] || [ "$command" = "info" ];then
+while getopts c:d:i:t:fVvh OPT;do
+  case $OPT in
+    "c" ) conf_file="$OPTARG" ;;
+    "d" ) conf_dir="$OPTARG" ;;
+    "i" ) inst_dir="$OPTARG" ;;
+    "t" ) default_inst_type="$OPTARG" ;;
+    "f" ) force=1 ;;
+    "V" ) verbose=1 ;;
+    "v" ) echo "$(basename "$0") $STOW_GET_VERSION $STOW_GET_DATE"; exit 0;;
+    "h" ) show_help 0;;
+    * ) echo "Check \"$(basename "$0") -h\" for more information" >/dev/tty;exit $EXIT_WRONG_ARG;;
+
+  esac
+done
+shift $((OPTIND - 1))
+
+if echo " ${NEED_ARGS[*]} "|grep -q " $command ";then
   if [ "$#" -eq 0 ];then
     err "Need <package> argument for $command command."
     exit $EXIT_NO_PACKAEGE
   fi
+fi
+
+if [ "$command" = "get_latest" ];then
+  packages=("$@")
+  for package in "$@";do
+    get_gnu_latest "$package" 1
+  done
+  exit
 fi
 
 # }}}
@@ -326,10 +370,10 @@ fi
 # Info {{{
 if [ "$command" = "info" ];then
   for package in "${packages[@]}";do
-    conf=$(get_pac_conf "$package")
+    get_pac_conf "$package" 1
   done
   banner "Configuration for $package"
-  cat "$conf"
+  cat "$pac_conf"
 fi
 # }}}
 
@@ -343,9 +387,7 @@ fi
 i=0
 while [ "$i" -lt "${#packages[@]}" ];do
   package="${packages[$i]}"
-  reset_inst_val
-  conf=$(get_pac_conf "$package")
-  source "$conf"
+  source_pac_conf
   deps=0
   j=0
   while [ "$j" -lt ${#bin_dep[@]} ];do
@@ -391,22 +433,18 @@ export PATH=$inst_dir/bin:$PATH
 
 # Main loop {{{
 for package in "${packages[@]}";do
-  reset_inst_val
-  conf="$conf_dir/${package}.sh"
-  if [ ! -f "$conf" ];then
-    err "No configuration file for $package is found."
-    exit $EXIT_NO_PAC_CONF
-  fi
+  source_pac_conf
 
-  source "$conf"
   if [ "$version" = "" ];then
-    err "version is not defined for $package."
-    exit $EXIT_NO_VERSION
+    if [ "$inst_type" = "gnu" ];then
+      version=$(get_gnu_latest "$package")
+    else
+      err "version is not defined for $package."
+      exit $EXIT_NO_VERSION
+    fi
   fi
 
-  if [ "${target}" = "" ];then
-    target=${package}-${version}
-  fi
+  target=${target:-${package}-${version}}
 
   if [ -d "$stow_dir/$target" ];then
     if [ "$force" -eq 1 ];then
@@ -430,7 +468,7 @@ for package in "${packages[@]}";do
   if [ "$verbose" -eq 1 ];then
     stow_install_wrapper
   else
-    log=$(stow_install _wrapper2>&1)
+    log=$(stow_install_wrapper 2>&1)
   fi
   ret=$?
 
