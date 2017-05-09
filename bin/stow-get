@@ -157,6 +157,7 @@ function cd_check { ## {{{
   if [ $ret != 0 ] && [ "$no_exit" = "" ];then
     exit $EXIT_CD_FAIL
   fi
+  return $ret
 } ## }}}
 
 function get_pac_conf { # {{{
@@ -202,9 +203,15 @@ function set_target { # {{{
 } # }}}
 
 function clean_package { # {{{
-  cd_check "$stow_dir"
-  stow -D "${package}-STOW-"*
-  rm -rf "${package}-STOW-"*
+  cd_check "$stow_dir" 1 >/dev/null 2>&1
+  ret=$?
+  if [ $ret -eq 0 ];then
+    local pdirs=$(ls -d "${package}-STOW-"*)
+    if [ "$pdirs" != "" ];then
+      stow -D "${package}-STOW-"*
+      rm -rf "${package}-STOW-"*
+    fi
+  fi
 } # }}}
 
 function check_bin { ## {{{
@@ -324,6 +331,8 @@ function stow_install_github_direct { ## {{{
 } ## }}}
 
 function stow_install_wrapper { ## {{{
+  cd_check "$TMP_DIR"
+
   if [ "$inst_type" = "tarball" ];then
     stow_install_tarball
   elif [ "$inst_type" = "gnu" ];then
@@ -529,8 +538,6 @@ for package in "${packages[@]}";do
       continue
     fi
   fi
-
-  cd_check "$TMP_DIR"
 
   banner "Installing $stow_dir/$target"
 

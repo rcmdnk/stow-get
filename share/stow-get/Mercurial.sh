@@ -7,5 +7,5 @@ function make_cmd {
   which python
   echo $LD_LIBRARY_PATH
   make build
-  python setup.py install --prefix="$STOW_DIR/$target" --force
+  python setup.py install --prefix="$stow_dir/$target" --force
 }

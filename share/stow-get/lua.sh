@@ -15,8 +15,8 @@ elif [[ "$OSTYPE" =~ bsd ]];then
   plathome=freebsd
 fi
 function make_cmd {
-  make $plathome MYLIBS=" -ltermcap" MYLDFLAGS=" -L$INST_DIR/lib" MYCFLAGS=" \
-    -I$INST_DIR/usr/local/include"
-  make install INSTALL_TOP="$STOW_DIR/lua-$version"
+  make $plathome MYLIBS=" -ltermcap" MYLDFLAGS=" -L$inst_dir/lib" MYCFLAGS=" \
+    -I$inst_dir/usr/local/include"
+  make install INSTALL_TOP="$stor_dir/lua-$version"
 }
 lib_dep=(libreadline readline libtermcap termcap)
