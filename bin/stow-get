@@ -510,7 +510,6 @@ done
 # Prepare tmp dir/path {{{
 TMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TMP_DIR"' EXIT HUP INT QUIT ABRT SEGV TERM
-export PATH=$inst_dir/bin:$PATH
 # }}}
 
 # Main loop {{{
