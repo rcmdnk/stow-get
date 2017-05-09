@@ -3,7 +3,7 @@
 # Set parameters
 user=rcmdnk
 repo="stow-get"
-git="git@github.com:$user/$repo"
+git="https://github.com/$user/$repo"
 raw=https://raw.github.com/$user/$repo/master
 
 # Set prefix
