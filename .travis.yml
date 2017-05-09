@@ -1,6 +1,6 @@
 language: python
 script:
-  - curl -fsSL https://raw.github.com/rcmdnk/stow-get/install/install.sh |sh
+  - curl -fsSL https://raw.github.com/rcmdnk/stow-get/install/install.sh |bash
 notifications:
   email:
     recipients:
