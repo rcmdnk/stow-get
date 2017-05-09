@@ -5,7 +5,19 @@ before_install:
   - export LD_LIBRARY_PATH="$INST_DIR/lib64:$INST_DIR/lib:$LD_LIBRARY_PATH"
 install:
   - echo "PACKAGES=(git screen vim)" > ~/.stow-get
+  - echo "PACKAGES=(nano)" > ~/.stow-get
+  - mkdir conf_dir
+  - echo "PACKAGES=(nano)" > ./conf_file
+  - echo "isnt_type=gnu" > ./conf_dir/wdiff.sh
 script:
+  - ./bin/stow-get help
+  - ./bin/stow-get version
   - ./bin/stow-get install -V
   - ./bin/stow-get install $(ls share/stow-get/*sh|cut -d"/" -f3|sed "s/.sh$//")
   - ls "$INST_DIR/stow"
+  - ./bin/stow-get uninstall screen
+  - ls "$INST_DIR/stow"
+  - ./bin/stow-get info screen
+  - ./bin/stow-get get_latest wget
+  - ./bin/stow-get install -t gnu wget
+  - ./bin/stow-get -c ./conf_file -d ./conf_dir
