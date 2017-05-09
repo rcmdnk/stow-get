@@ -41,6 +41,7 @@ EXIT_WRONG_BIN_DEP=104
 EXIT_WRONG_LIB_DEP=105
 EXIT_NO_PAC_CONF=106
 EXIT_NO_VERSION=107
+EXIT_NOT_GNU=108
 # }}}
 
 # Default variables {{{
@@ -98,6 +99,8 @@ Sub commands:
                   Remove package.
    rm/remove      Aliases of uninstall.
    info <package> Show configuration file of package.
+   get_latest  <package>
+   Show the latest version of package (only for GNU packages).
    version        Show version.
    help           Show this help.
 
@@ -171,6 +174,22 @@ function source_pac_conf { # {{{
   fi
 } # }}}
 
+function set_version { # {{{
+  if [ "$version" = "" ] || [ "$version" = "latest" ];then
+    if [ "$inst_type" = "gnu" ];then
+      get_gnu_latest "$package"
+    else
+      err "version(=$version) is not recognized for $package."
+      exit $EXIT_NO_VERSION
+    fi
+  fi
+} # }}}
+
+function set_target { # {{{
+  set_version
+  target=${package}-STOW-${version}
+} # }}}
+
 function check_bin { ## {{{
   type -a "$1" >/dev/null 2>&1
 } ## }}}
@@ -181,7 +200,8 @@ function check_lib { # {{{
   pathes=(${LD_LIBRARY_PATH//:/$'\n'})
   IFS=$IFS_ORIG
   for d in "${pathes[@]}";do
-    if [ -f "$d/${1}*" ];then
+    files=$(ls "$d/${1}"* 2>/dev/null)
+    if [ "$files" != "" ];then
       return 0
     fi
   done
@@ -204,13 +224,8 @@ function get_tarball  { # {{{
 } # }}}
 
 function stow_install_tarball { ## {{{
-  if [ "$tarball" = "" ];then
-    tarball=${target}.tar.gz
-  fi
-  if [ "$directory" = "" ];then
-    directory=${target}
-  fi
-
+  directory=${directory:-${target/-STOW/}}
+  tarball=${tarball:-${directory}.tar.gz}
   get_tarball "$url_prefix/$tarball"
   ret=$?
   if [ $ret -ne 0 ];then
@@ -257,9 +272,12 @@ function get_gnu_latest { ## {{{
   local html="$(curl "$url" 2>/dev/null)"
   local latest="$(printf "$html"|grep "$p"|grep ".tar.gz<"|grep "$1"|grep -v "\-doc\-"|grep -v latest|tail -n1)"
   local params=$(echo "$latest"|sed 's/<[^>]*>/ /g')
-  if [ "$output_time" -eq 0 ];then
-    echo "$params"|awk -v p="$p" '{sub(p"-", "", $1)}{sub(".tar.gz", "", $1)}{print $1}'
-  else
+  if [ "$params" = "" ];then
+    err "$p is not a GNU package."
+    exit $EXIT_NOT_GNU
+  fi
+  version=$(echo "$params"|awk -v p="$p" '{sub(p"-", "", $1)}{sub(".tar.gz", "", $1)}{print $1}')
+  if [ "$output_time" -eq 1 ];then
     printf "%15s %8s %8s %3s %10s %5s %5s\n" $(echo "$params"|awk -v p="$p" '{sub(p"-", "", $1)}{sub(".tar.gz", "", $1)}{print p " " $1 "    updated at: " $2 " " $3 " " $4}')
   fi
 } ## }}}
@@ -313,7 +331,7 @@ function stow_install_wrapper { ## {{{
 
 # Check argumetns {{{
 
-COMMANDS=(install rm remove uninstall info get_latest help version)
+COMMANDS=(install rm remove uninstall info get_latest version help)
 NEED_ARGS=(uninstall info get_latest)
 
 if [ "$#" -eq 0 ] || [ "$1" = "help" ];then
@@ -380,9 +398,10 @@ fi
 if [ "$command" = "info" ];then
   for package in "${packages[@]}";do
     get_pac_conf "$package" 1
+    banner "Configuration for $package"
+    cat "$pac_conf"
   done
-  banner "Configuration for $package"
-  cat "$pac_conf"
+  exit
 fi
 # }}}
 
@@ -407,7 +426,7 @@ while [ "$i" -lt "${#packages[@]}" ];do
     fi
     if ! check_bin "${bin_dep[j]}";then
       if ! echo " ${packages[*]} "|grep -q " $p ";then
-        packages=($(echo " ${packages[*]} "|sed 's/ $package / $p $package /'))
+        packages=($(echo " ${packages[*]} "|sed "s/ $package / $p $package /"))
         deps=1
       fi
     fi
@@ -422,7 +441,7 @@ while [ "$i" -lt "${#packages[@]}" ];do
     fi
     if ! check_lib "${lib_dep[j]}";then
       if ! echo " ${packages[*]} "|grep -q " $p ";then
-        packages=($(echo " ${packages[*]} "|sed 's/ $package / $p $package /'))
+        packages=($(echo " ${packages[*]} "|sed "s/ $package / $p $package /"))
         deps=1
       fi
     fi
@@ -443,17 +462,7 @@ export PATH=$inst_dir/bin:$PATH
 # Main loop {{{
 for package in "${packages[@]}";do
   source_pac_conf
-
-  if [ "$version" = "" ] || [ "$version" = "latest" ];then
-    if [ "$inst_type" = "gnu" ];then
-      version=$(get_gnu_latest "$package")
-    else
-      err "version(=$version) is not recognized for $package."
-      exit $EXIT_NO_VERSION
-    fi
-  fi
-
-  target=${target:-${package}-${version}}
+  set_target
 
   if [ -d "$stow_dir/$target" ];then
     banner_v "$target was already installed."
@@ -475,7 +484,7 @@ for package in "${packages[@]}";do
 
   cd_check "$TMP_DIR"
 
-  banner "Installing $target"
+  banner "Installing $stow_dir/$target"
 
   if [ $dryrun -eq 1 ];then
     continue
