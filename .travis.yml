@@ -1,0 +1,5 @@
+language: python
+install:
+  - echo "PACKAGES=(git screen vim)" > ~/.stow-get
+script:
+  - ./bin/stow-get install -V
