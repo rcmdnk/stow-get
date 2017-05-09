@@ -17,6 +17,6 @@ fi
 function make_cmd {
   make $plathome MYLIBS=" -ltermcap" MYLDFLAGS=" -L$inst_dir/lib" MYCFLAGS=" \
     -I$inst_dir/usr/local/include"
-  make install INSTALL_TOP="$stow_dir/lua-$version"
+  make install INSTALL_TOP="$stow_dir/$target"
 }
 lib_dep=(libreadline readline libtermcap termcap)
