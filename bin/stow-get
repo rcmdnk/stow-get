@@ -347,9 +347,9 @@ function stow_install_wrapper { ## {{{
 COMMANDS=(install rm remove uninstall info get_latest version help)
 NEED_ARGS=(uninstall info get_latest)
 
-if [ "$#" -eq 0 ] || [ "$1" = "help" ];then
+if [ "$#" -eq 0 ] || [ "$1" = "help" ] || [ "$1" = "-h" ];then
   show_help 0
-elif [ "$1" = "version" ];then
+elif [ "$1" = "version" ] || [ "$1" = "-v" ];then
   echo "$(basename "$0") $STOW_GET_VERSION $STOW_GET_DATE"
   exit 0
 fi
