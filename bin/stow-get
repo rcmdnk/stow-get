@@ -52,6 +52,7 @@ function set_default {
   conf_file="$HOME/.stow-get"
   default_inst_type=""
   force=0
+  dryrun=0
   packages=()
   verbose=0
 }
@@ -88,7 +89,7 @@ function show_help { # {{{
   ret="$1"
   set_default
   echo "
-Usage: stow-get <sub command> [-fVvh] [-c <conf file>] [-d <conf dir>] [-i <inst dir> ] [package [package [...]]]
+Usage: stow-get <sub command> [-fDVvh] [-c <conf file>] [-d <conf dir>] [-i <inst dir> ] [-t <inst type>] [package [package [...]]]
 
 Sub commands:
    install [package [package...]]
@@ -106,6 +107,7 @@ Arguments:
    -i <inst dir>  Directory to install packages (default: $inst_dir).
    -t <inst type> Set install type: only for install with package name (default: $default_inst_type).
    -f             Force to re-install.
+   -D             Dry run mode.
    -V             Verbose mode.
    -v             Show version.
    -h             Show this help.
@@ -119,6 +121,12 @@ function banner { ## {{{
   echo "####################################################################"
   echo "$@"
   echo "####################################################################"
+} ## }}}
+
+function banner_v { ## {{{
+  if [ $verbose -eq 1 ];then
+    banner "$@"
+  fi
 } ## }}}
 
 function err { ## {{{
@@ -173,7 +181,7 @@ function check_lib { # {{{
   pathes=(${LD_LIBRARY_PATH//:/$'\n'})
   IFS=$IFS_ORIG
   for d in "${pathes[@]}";do
-    if [ -f "$d/${1}.so" ] || [ -f "$d/${1}.a" ];then
+    if [ -f "$d/${1}*" ];then
       return 0
     fi
   done
@@ -325,13 +333,14 @@ if [ "$command" = "rm" ] || [ "$command" = "remove" ];then
   command="uninstall"
 fi
 
-while getopts c:d:i:t:fVvh OPT;do
+while getopts c:d:i:t:fDVvh OPT;do
   case $OPT in
     "c" ) conf_file="$OPTARG" ;;
     "d" ) conf_dir="$OPTARG" ;;
     "i" ) inst_dir="$OPTARG" ;;
     "t" ) default_inst_type="$OPTARG" ;;
     "f" ) force=1 ;;
+    "D" ) dryrun=1 ;;
     "V" ) verbose=1 ;;
     "v" ) echo "$(basename "$0") $STOW_GET_VERSION $STOW_GET_DATE"; exit 0;;
     "h" ) show_help 0;;
@@ -435,11 +444,11 @@ export PATH=$inst_dir/bin:$PATH
 for package in "${packages[@]}";do
   source_pac_conf
 
-  if [ "$version" = "" ];then
+  if [ "$version" = "" ] || [ "$version" = "latest" ];then
     if [ "$inst_type" = "gnu" ];then
       version=$(get_gnu_latest "$package")
     else
-      err "version is not defined for $package."
+      err "version(=$version) is not recognized for $package."
       exit $EXIT_NO_VERSION
     fi
   fi
@@ -447,23 +456,30 @@ for package in "${packages[@]}";do
   target=${target:-${package}-${version}}
 
   if [ -d "$stow_dir/$target" ];then
+    banner_v "$target was already installed."
     if [ "$force" -eq 1 ];then
-      cd_check "$stow_dir"
-      stow -D "$target"
-      rm -rf "$target"
-    else
-      if [ "$verbose" -eq 1 ];then
-        banner "$target was already installed."
+      banner_v "Reinstall $target."
+      if [ $dryrun -eq 0 ];then
+        cd_check "$stow_dir"
+        stow -D "$target"
+        rm -rf "$target"
       fi
-      cd_check "$stow_dir"
-      stow --ignore="share/info/dir" "$target"
+    else
+      if [ $dryrun -eq 0 ];then
+        cd_check "$stow_dir"
+        stow --ignore="share/info/dir" "$target"
+      fi
       continue
     fi
   fi
 
   cd_check "$TMP_DIR"
 
-  banner "Installing $package"
+  banner "Installing $target"
+
+  if [ $dryrun -eq 1 ];then
+    continue
+  fi
 
   if [ "$verbose" -eq 1 ];then
     stow_install_wrapper

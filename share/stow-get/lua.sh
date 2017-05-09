@@ -19,3 +19,4 @@ function make_cmd {
     -I$INST_DIR/usr/local/include"
   make install INSTALL_TOP="$STOW_DIR/lua-$version"
 }
+lib_dep=(libreadline readline libtermcap termcap)

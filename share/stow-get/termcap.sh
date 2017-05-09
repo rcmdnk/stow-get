@@ -1,2 +1,2 @@
-version=1.3.1
+version=latest
 inst_type=gnu

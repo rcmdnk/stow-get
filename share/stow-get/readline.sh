@@ -1,2 +1,2 @@
-version=7.0
+version=latest
 inst_type=gnu
