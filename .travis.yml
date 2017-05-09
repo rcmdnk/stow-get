@@ -1,0 +1,9 @@
+language: python
+script:
+  - curl -fsSL https://raw.github.com/rcmdnk/stow-get/install/install.sh |sh
+notifications:
+  email:
+    recipients:
+      - rcmdnk@gmail.com
+    on_success: change
+    on_failure: always
