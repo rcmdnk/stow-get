@@ -504,6 +504,10 @@ export PATH=$inst_dir/bin:$PATH
 for package in "${packages[@]}";do
   source_pac_conf
 
+  if [ "$package" = "stow" ];then
+    export PATH=$stow_dir/$target/bin:$PATH
+  fi
+
   if [ -d "$stow_dir/$target" ];then
     banner_v "$target was already installed."
     if [ "$force" -eq 1 ];then
@@ -516,11 +520,7 @@ for package in "${packages[@]}";do
     else
       if [ $dryrun -eq 0 ];then
         cd_check "$stow_dir"
-        stow_cmd=stow
-        if [ "$package" = "stow" ];then
-          stow_cmd="./$target/bin/stow"
-        fi
-        $stow_cmd --ignore="share/info/dir" "$target"
+        stow --ignore="share/info/dir" "$target"
       fi
       continue
     fi
@@ -554,10 +554,6 @@ for package in "${packages[@]}";do
   fi
 
   cd_check "$stow_dir"
-
-  if [ "$package" = "stow" ];then
-    export PATH=$stow_dir/$target/bin:$PATH
-  fi
 
   # Install. ignore share/info/dir which causes a conflict sometime.
   stow --ignore="share/info/dir" "$target"
