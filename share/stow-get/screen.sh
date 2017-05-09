@@ -1,4 +1,3 @@
-version=latest
 inst_type=gnu
 bin_dep=(automake automake autoconf autoconf)
 bin_lib=(libncurses ncurses)
