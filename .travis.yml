@@ -1,5 +1,11 @@
 language: python
+before_install:
+  - export PATH="$HOME/usr/local/bin:$PATH"
+  - export LD_LIBRARY_PATH="$HOME/usr/local/lib64:$HOME/usr/local/lib:$LD_LIBRARY_PATH"
 install:
   - echo "PACKAGES=(git screen vim)" > ~/.stow-get
 script:
   - ./bin/stow-get install -V
+  - ls ~/usr/local/stow
+  - ls ~/usr/local/bin
+  - ls ~/usr/local/lib*
