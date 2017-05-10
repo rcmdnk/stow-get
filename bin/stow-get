@@ -102,6 +102,8 @@ Sub commands:
    uninstall <package>
                   Remove package.
    rm/remove      Aliases of uninstall.
+   list           List up installed packages.
+   packages       List up available packages which have configuration files.
    info <package> Show configuration file of package.
    get_latest  <package>
    Show the latest version of package (only for GNU packages).
@@ -357,7 +359,7 @@ function stow_install_wrapper { ## {{{
 
 # Check argumetns {{{
 
-COMMANDS=(install rm remove uninstall info get_latest version help)
+COMMANDS=(install rm remove uninstall list packages info get_latest version help)
 NEED_ARGS=(uninstall info get_latest)
 
 if [ "$#" -eq 0 ] || [ "$1" = "help" ] || [ "$1" = "-h" ];then
@@ -426,6 +428,20 @@ if [ "$command" = "info" ];then
     banner "Configuration for $package"
     cat "$pac_conf"
   done
+  exit
+fi
+# }}}
+
+# List {{{
+if [ "$command" = "list" ];then
+  echo $(ls "$stow_dir"|awk '{split($1, tmp, "-STOW-")}{print tmp[1]}')
+  exit
+fi
+# }}}
+
+# Packages {{{
+if [ "$command" = "packages" ];then
+  echo $(ls "$conf_dir"|sed 's/.sh$//')
   exit
 fi
 # }}}
