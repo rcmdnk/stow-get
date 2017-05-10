@@ -247,11 +247,17 @@ function get_tarball  { # {{{
     return $ret
   fi
   if echo "$1"|grep -q "tar.gz$";then
-    tar xzf "${1##*/}"
+    tar zxf "${1##*/}"
+  elif echo $tarball|grep -q "tgz$";then
+    tar zxf "${1##*/}"
   elif echo $tarball|grep -q "tar.xz$";then
     tar Jxf "${1##*/}"
   elif echo $tarball|grep -q "tar.bz2$";then
     tar jxf "${1##*/}"
+  elif echo $tarball|grep -q "tar.Z$";then
+    tar zxf "${1##*/}"
+  elif echo $tarball|grep -q "tar$";then
+    tar xf "${1##*/}"
   elif echo $tarball|grep -q "zip$";then
     unzip "${1##*/}"
   fi
@@ -454,10 +460,13 @@ if ! echo "$LD_LIBRARY_PATH"| grep -q "$inst_dir/lib";then
 which may make a problem to search dependencies."
 fi
 
-# Check stow {{{
-if ! type -a stow >/dev/null 2>&1;then
-  packages=(stow "${packages[@]}")
-fi
+# Check necessary packages {{{
+necessary_packages=(unzip wget stow)
+for p in "${necessary_packages[@]}";do
+  if ! type -a "$p" >/dev/null 2>&1;then
+    packages=($p "${packages[@]}")
+  fi
+done
 # }}}
 
 # Uninstall {{{
