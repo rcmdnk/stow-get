@@ -81,7 +81,85 @@ you can easily install them by:
 
 ## Package configuration file
 
-See examples in [stow-get/share/stow-get](https://github.com/rcmdnk/stow-get/tree/master/share/stow-get).
+All configuration file must have a name of `<package>.sh`.
+
+|Parameter|Description|Default|
+|:-:|:-|:-|
+|inst_type| Type of installation. Available types are: `gnu`, `tarball`, `github` or `github_direct`. This parameter is mandatory.|-|
+|version|Version of th package.|-|
+|tarball|tarball name.|<package>-<version>.tar.gz|
+|url_prefix| URL where tarball file is placed.|For gnu: http://ftp.gnu.org/gnu/<package>.<br />For github: https://github.com/<package>/<package>/archive|
+|configure|Configure command. Most of packages have `configure` file to be executed first.|./configure|
+|config_options|Options for `configure` command.<br>Note: `--prefix` option is automatically added if `configure` is executed.|""|
+|before_configure|Commands executed before `configure`.<br>If `configure` doesn't have `--prefix` but it set prefix in other way, then set `configure=""` and write configure command in `before_configure`.|""|
+|make_cmd|This is function for make command.|function make_cmd { make all && make install; }|
+
+### `inst_type`
+
+Available `inst_type` are `gnu`, `tarball`, `github` and `github_direct`:
+
+* gnu
+
+For GNU Project packages, if it can be obtained from [ftp repository](http://ftp.gnu.org/gnu/)
+and it has tar.gz file with `<package>-<version>.tar.gz` naming convention,
+you need only one line:
+
+    inst_type=gnu
+
+If you want to specify a version, add
+
+    version=1.2.3
+
+* tarball
+
+Set `inst_type`:
+
+    inst_type=tarball
+
+`version` must be specified for `tarball` case.
+
+In addition, `url_prefix`, which is URL where tarball file is placed,  is needed, like:
+
+    url_prefix=http://www.lua.org/ftp/
+
+The default tarball name is `<package>-<version>.tar.gz`. If the naming convention is different,
+specify tarball name with `tarball`, like:
+
+    tarball=expat-${version}.tar.bz2
+
+`tar.gz`, `tar.xz`, `tar.bz2` and `zip` files are available as tarball.
+
+* github
+
+If the package is distributed by GitHub and it has *releases*,
+use `inst_type=github`.
+
+Most of cases, GitHub releases have version with naming convention of `v<version>`.
+
+For this case, set `version` without `v`, like:
+
+    version=2.13.0
+
+GitHub's releases' url is normally like:
+
+    https://github.com/<user>/<repository>/archive/v<version>.tar.gz
+
+If the repository and GitHub user name is same as package (like [git](https://github.com/git/git/),
+you need to set only `version`.
+
+If `user` or `repository` is different from package name, specify them in the configuration file.
+
+    user=package_owner
+    repository=package_repository
+
+If archive file naming convention is different from `v<version>`,
+it may be better to use `tarball` instead of `github`.
+
+* github_direct
+
+
+
+See more examples in [stow-get/share/stow-get](https://github.com/rcmdnk/stow-get/tree/master/share/stow-get).
 
 ## Help
 

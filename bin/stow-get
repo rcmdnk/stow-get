@@ -72,15 +72,17 @@ function reset_inst_val {
   url_prefix=""
   tarball=""
   directory=""
-  before_configure=""
   configure="./configure"
-  config_options=""
+  configure_options=""
 
   bin_dep=()
   lib_dep=()
 
 
   unset stow_install
+  function before_configure {
+    :
+  }
   function make_cmd {
     make all && make install
   }
@@ -266,7 +268,7 @@ function stow_install_tarball { ## {{{
     return $ret
   fi
 
-  eval "$before_configure"
+  before_configure
   ret=$?
   if [ $ret -ne 0 ];then
     return $ret
@@ -276,7 +278,7 @@ function stow_install_tarball { ## {{{
     CFLAGS="-L$inst_dir/lib -I$inst_dir/include" \
       CPPFLAGS="-L$inst_dir/lib -I$inst_dir/include" \
       LDFLAGS="-L$inst_dir/lib" \
-      "$configure" --prefix="$stow_dir/$target" "$config_options"
+      "$configure" --prefix="$stow_dir/$target" "$configure_options"
     ret=$?
     if [ $ret -ne 0 ];then
       return $ret
@@ -310,7 +312,9 @@ function get_gnu_latest { ## {{{
 
 function stow_install_github { ## {{{
   tarball=${tarball:-v${version}.tar.gz}
-  url_prefix=${url_prefix:-https://github.com/$package/$package/archive}
+  user=${user:-${package}}
+  repository=${repository:-${package}}
+  url_prefix=${url_prefix:-https://github.com/$user/$repository/archive}
   stow_install_tarball
 } ## }}}
 
