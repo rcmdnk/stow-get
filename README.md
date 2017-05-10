@@ -89,12 +89,12 @@ Following parameters can be set as shell script.
 |:-:|:-|:-|
 |inst_type| Type of installation. Available types are: `gnu`, `tarball`, `github` or `github_direct`. This parameter is mandatory.|-|
 |version|Version of th package.|-|
-|tarball|tarball name.|<package>-<version>.tar.gz|
+|tarball|tarball name.|`<package>-<version>.tar.gz`|
 |url_prefix| URL where tarball file is placed.|For gnu: http://ftp.gnu.org/gnu/<package>.<br />For github: https://github.com/<package>/<package>/archive|
 |configure|Configure command. Most of packages have `configure` file to be executed first.|./configure|
 |config_options|Options for `configure` command.<br>Note: `--prefix` option is automatically added if `configure` is executed.|""|
-|before_configure|This is function. Commands executed before `configure`.<br>If `configure` doesn't have `--prefix` but it set prefix in other way, then set `configure=""` and write configure command in `before_configure`.|function before_configure { :; }|
-|make_cmd|This is function for make command.|function make_cmd { make all && make install; }|
+|before_configure|This is function. Commands executed before `configure`.<br>If `configure` doesn't have `--prefix` but it set prefix in other way, then set `configure=""` and write configure command in `before_configure`.|function before_configure {<br>  :<br>}|
+|make_cmd|This is function for make command.|function make_cmd {<br>  make all && make install<br>}|
 
 ### `inst_type`
 
