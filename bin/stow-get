@@ -246,6 +246,8 @@ function get_tarball  { # {{{
     tar Jxf "${1##*/}"
   elif echo $tarball|grep -q "tar.bz2$";then
     tar jxf "${1##*/}"
+  elif echo $tarball|grep -q "zip$";then
+    unzip "${1##*/}"
   fi
 } # }}}
 
