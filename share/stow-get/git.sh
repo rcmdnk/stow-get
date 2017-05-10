@@ -1,4 +1,4 @@
-version=2.13.0-rc1
+version=2.13
 inst_type=github
 before_configure="make configure"
 bin_dep=(autoconf autoconf)
