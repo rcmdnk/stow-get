@@ -53,7 +53,7 @@ function set_inst_dir {
 function set_default {
   set_inst_dir "$HOME/usr/local"
   script_dir=$(cd "$(dirname "$0")";pwd)
-  conf_dir="$script_dir/../share/stow-get"
+  conf_dir=("$script_dir/../share/stow-get")
   conf_file="$HOME/.stow-get"
   default_inst_type=""
   force=0
@@ -116,7 +116,8 @@ Sub commands:
 
 Arguments:
    -c <conf file> Configuration file (default: $conf_file).
-   -d <conf dir>  Directory which has package configuration files (default: $conf_dir).
+   -d <conf dir>  Additional directory of package configuration files (default: ${conf_dir[@]}).
+                  Multi directories can be specified by separating with \",\".
    -i <inst dir>  Directory to install packages (default: $inst_dir).
    -t <inst type> Set install type: only for install with package name (default: $default_inst_type).
    -f             Force to re-install.
@@ -169,14 +170,18 @@ function cd_check { ## {{{
 } ## }}}
 
 function get_pac_conf { # {{{
-  pac_conf="$conf_dir/${1}.sh"
+  conf_name="${1}.sh"
   is_exit="${2:-1}"
-  if [ ! -f "$pac_conf" ];then
-    if [ "$is_exit" -eq 1 ];then
-      err "No configuration file for $1 is found."
-      exit $EXIT_NO_PAC_CONF
+  pac_conf=""
+  for d in "${conf_dir[@]}";do
+    if [ -f "${d}/${conf_name}" ];then
+      pac_conf="${d}/${conf_name}"
+      break
     fi
-    pac_conf=""
+  done
+  if [ "$pac_conf" = "" ] && [ "$is_exit" -eq 1 ];then
+    err "No configuration file for $1 is found."
+    exit $EXIT_NO_PAC_CONF
   fi
 } # }}}
 
@@ -386,7 +391,7 @@ fi
 while getopts c:d:i:t:fDVvh OPT;do
   case $OPT in
     "c" ) conf_file="$OPTARG" ;;
-    "d" ) conf_dir="$OPTARG" ;;
+    "d" ) conf_dir=(${OPTARG/,/ } "${conf_dir[@]}");;
     "i" ) set_inst_dir "$OPTARG" ;;
     "t" ) default_inst_type="$OPTARG" ;;
     "f" ) force=1 ;;
@@ -445,7 +450,9 @@ fi
 
 # Packages {{{
 if [ "$command" = "packages" ];then
-  echo $(ls "$conf_dir"|sed 's/.sh$//')
+  for d in "${conf_dir[@]}";do
+    echo $(ls "$d"|sed 's/.sh$//')
+  done
   exit
 fi
 # }}}

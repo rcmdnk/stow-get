@@ -69,7 +69,9 @@ Default directory for package configuration files is **/PATH/TO/stow-get/../shar
 
 If you have own package configuration files, set the directory like:
 
-    conf_dir=/PATH/TO/YOUR/CONFIGURATION/DIRECTORY
+    conf_dir=(/PATH/TO/YOUR/CONFIGURATION/DIRECTORY ${conf_dir[@]})
+
+`conf_dir` is an array of package configuration directories.
 
 If you set **packages** variable in your configuration file like:
 
