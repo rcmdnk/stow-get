@@ -179,7 +179,7 @@ See more examples in [stow-get/share/stow-get](https://github.com/rcmdnk/stow-ge
        packages       List up available packages which have configuration files.
        info <package> Show configuration file of package.
        get_latest  <package>
-       Show the latest version of package (only for GNU packages).
+                      Show the latest version of package (only for GNU packages).
        version        Show version.
        help           Show this help.
 

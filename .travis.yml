@@ -17,6 +17,8 @@ script:
   - ls "$INST_DIR/stow"
   - ./bin/stow-get uninstall screen
   - ls "$INST_DIR/stow"
+  - ./bin/stow-get list
+  - ./bin/stow-get packages
   - ./bin/stow-get info screen
   - ./bin/stow-get get_latest wget
   - ./bin/stow-get install -t gnu wget
