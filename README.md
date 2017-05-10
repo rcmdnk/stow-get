@@ -83,6 +83,8 @@ you can easily install them by:
 
 All configuration file must have a name of `<package>.sh`.
 
+Following parameters can be set as shell script.
+
 |Parameter|Description|Default|
 |:-:|:-|:-|
 |inst_type| Type of installation. Available types are: `gnu`, `tarball`, `github` or `github_direct`. This parameter is mandatory.|-|
@@ -91,7 +93,7 @@ All configuration file must have a name of `<package>.sh`.
 |url_prefix| URL where tarball file is placed.|For gnu: http://ftp.gnu.org/gnu/<package>.<br />For github: https://github.com/<package>/<package>/archive|
 |configure|Configure command. Most of packages have `configure` file to be executed first.|./configure|
 |config_options|Options for `configure` command.<br>Note: `--prefix` option is automatically added if `configure` is executed.|""|
-|before_configure|Commands executed before `configure`.<br>If `configure` doesn't have `--prefix` but it set prefix in other way, then set `configure=""` and write configure command in `before_configure`.|""|
+|before_configure|This is function. Commands executed before `configure`.<br>If `configure` doesn't have `--prefix` but it set prefix in other way, then set `configure=""` and write configure command in `before_configure`.|function before_configure { :; }|
 |make_cmd|This is function for make command.|function make_cmd { make all && make install; }|
 
 ### `inst_type`
@@ -157,7 +159,9 @@ it may be better to use `tarball` instead of `github`.
 
 * github_direct
 
+Like github, but useful if the repository has simple structure with such **bin** or **lib** directories.
 
+The repository is directory copied into stow directory.
 
 See more examples in [stow-get/share/stow-get](https://github.com/rcmdnk/stow-get/tree/master/share/stow-get).
 
