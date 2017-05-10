@@ -285,9 +285,7 @@ function stow_install_tarball { ## {{{
 } ## }}}
 
 function stow_install_gnu { ## {{{
-  if [ "$url_prefix" = "" ];then
-    url_prefix=http://ftp.gnu.org/gnu/$package
-  fi
+  url_prefix=${url_prefix:-http://ftp.gnu.org/gnu/$package}
   stow_install_tarball
 } ## }}}
 
@@ -309,27 +307,17 @@ function get_gnu_latest { ## {{{
 } ## }}}
 
 function stow_install_github { ## {{{
-  if [ "$tarball" = "" ];then
-    tarball=v${version}.tar.gz
-  fi
-  if [ "$url_prefix" = "" ];then
-    url_prefix=https://github.com/$package/$package/archive
-  fi
+  tarball=${tarball:-v${version}.tar.gz}
+  url_prefix=${url_prefix:-https://github.com/$package/$package/archive}
   stow_install_tarball
 } ## }}}
 
 function stow_install_github_direct { ## {{{
-  if [ "$tarball" = "" ];then
-    tarball=v${version}.tar.gz
-  fi
-  if [ "$url_prefix" = "" ];then
-    url_prefix=https://github.com/$package/$package/archive
-  fi
   configure=""
   function make_cmd {
     cp -r . "$stow_dir/$target"
   }
-  stow_install_tarball
+  stow_install_github
 } ## }}}
 
 function stow_install_wrapper { ## {{{
