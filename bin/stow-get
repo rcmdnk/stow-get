@@ -71,6 +71,8 @@ function reset_inst_val {
   target=""
   url_prefix=""
   tarball=""
+  user=""
+  repository=""
   directory=""
   configure="./configure"
   configure_options=""
