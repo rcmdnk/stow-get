@@ -4,8 +4,8 @@
 #
 # Package manager with stow.
 #
-STOW_GET_VERSION=v0.0.1
-STOW_GET_DATE="1/May/2017"
+STOW_GET_VERSION=v0.0.2
+STOW_GET_DATE="11/May/2017"
 #
 # }}}
 
