@@ -191,14 +191,10 @@ function get_pac_conf { ## {{{
     fi
   done
   if [ "$pac_conf" = "" ];then
-    warn "No configuration file for $1 is found."
+    banner_v "No configuration file for $1 is found."
     if [ "$is_exit" -eq 1 ];then
       exit $EXIT_NO_PAC_CONF
     fi
-  fi
-  if [ "$inst_type" = "" ];then
-    warn "No inst_type is given. Trying to $default_inst_type type installation."
-    inst_type=$default_inst_type
   fi
 } ## }}}
 
@@ -207,6 +203,10 @@ function source_pac_conf { ## {{{
   get_pac_conf "$package"
   if [ "$pac_conf" != "" ];then
     source "$pac_conf"
+  fi
+  if [ "$inst_type" = "" ];then
+    warn "No inst_type is given. Trying to $default_inst_type type installation."
+    inst_type=$default_inst_type
   fi
   set_target
 } ## }}}
@@ -424,10 +424,7 @@ fi
 if [ "$command" = "latest" ];then
   packages=("$@")
   for package in "$@";do
-    get_pac_conf "$package" 0 2>/dev/null
-    if [ "$pac_conf" != "" ];then
-      source "$pac_conf"
-    fi
+    source_pac_conf
     get_latest "$package"
   done
   exit
