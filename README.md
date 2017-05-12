@@ -89,14 +89,16 @@ Following parameters can be set as shell script.
 
 |Parameter|Description|Default|
 |:-:|:-|:-|
-|inst_type| Type of installation. Available types are: `gnu`, `tarball`, `github` or `github_direct`. This parameter is mandatory.|-|
+|inst_type| Type of installation. Available types are: `gnu`, `tarball`, `github` or `github_direct`. This parameter is mandatory.|`gnu`|
 |version|Version of th package.|-|
 |tarball|tarball name.|`<package>-<version>.tar.gz`|
 |url_prefix| URL where tarball file is placed.|For gnu: `http://ftp.gnu.org/gnu/<package>`. <br>For github: `https://github.com/<package>/<package>/archive`|
 |configure|Configure command. Most of packages have `configure` file to be executed first.|`./configure`|
 |config_options|Options for `configure` command.<br>Note: `--prefix="$stow_dir/$target/"` (where the package substance is installed) option is automatically added if `configure` is executed.|`""`|
+|stow_install|This is function to define how to install the package.<br>If `stow_isntall` is defined, other installation functions (including `before_configure` and `make_cmd`) for each inst_type are ignored.|undefined|
 |before_configure|This is function. Commands executed before `configure`.<br>If `configure` doesn't have `--prefix` but it set prefix in other way, then set `configure=""` and write configure command in `before_configure`.|function before_configure {<br>  :<br>}|
 |make_cmd|This is function for make command.|function make_cmd {<br>  make all && make install<br>}|
+|get_latest|This is function to get the latest version of the package. It is used if `version` is not specified, or `latest` command is executed. |Only `gnu` type has default method.|
 |bin_dep|Array of executable packages on which the package depending on.<br>One dependency must be a set of executable name and package name likee `lib_dep=(libcurl curl libexpat expat)`|`()`|
 |lib_dep|Array of library packages on which the package depending on.<br>One dependency must be a set of library name and package name likee `bin_dep=(automake automake autoconf autoconf)`|`()`|
 
@@ -183,18 +185,20 @@ See more examples in [stow-get/share/stow-get](https://github.com/rcmdnk/stow-ge
        packages       List up available packages which have configuration files.
        info <package> Show configuration file of package.
        latest <package>
-                      Show the latest version of package (only for GNU packages).
+                      Show the latest version of package.
        version        Show version.
        help           Show this help.
 
     Arguments:
        -c <conf file> Configuration file (default: /Users/USER/.stow-get).
-       -d <conf dir>  Directory which has package configuration files (default: /Users/USER/tmp/stow-get/bin/../share/stow-get).
+       -d <conf dir>  Additional directory of package configuration files (default: /Users/USER/tmp/stow-get/bin/../share/stow-get).
+                      Multi directories can be specified by separating with ",".
        -i <inst dir>  Directory to install packages (default: /Users/USER/usr/local).
-       -t <inst type> Set install type: only for install with package name (default: ).
+       -t <inst type> Set install type (default: gnu).
        -f             Force to re-install.
        -D             Dry run mode.
        -V             Verbose mode.
        -v             Show version.
        -h             Show this help.
 
+    See more details at: https://github.com/rcmdnk/stow-get
