@@ -1,7 +1,7 @@
 os:
   - linux
   - osx
-language: python
+language: ruby
 before_install:
   - export INST_DIR="$HOME/usr/local"
   - export PATH="$INST_DIR/bin:$PATH"
