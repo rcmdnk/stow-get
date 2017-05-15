@@ -1,3 +1,6 @@
+os:
+  - linux
+  - osx
 language: python
 before_install:
   - export INST_DIR="$HOME/usr/local"
