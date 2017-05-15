@@ -90,7 +90,7 @@ function reset_inst_val {
   }
   function get_latest {
     if [ "$inst_type" = "gnu" ];then
-      get_gnu_latest "$@" 1
+      get_gnu_latest "$@"
     else
       err "get_latest is undefined for $inst_type"
     fi
@@ -425,7 +425,7 @@ if [ "$command" = "latest" ];then
   packages=("$@")
   for package in "$@";do
     source_pac_conf
-    get_latest "$package"
+    get_latest "$package" 1
   done
   exit
 fi
