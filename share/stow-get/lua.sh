@@ -19,4 +19,4 @@ function make_cmd {
     -I$inst_dir/usr/local/include"
   make install INSTALL_TOP="$stow_dir/$target"
 }
-lib_dep=(libreadline readline libtermcap termcap)
+lib_dep=(readline termcap)

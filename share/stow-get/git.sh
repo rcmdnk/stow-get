@@ -3,5 +3,5 @@ inst_type=github
 function before_configure {
   make configure
 }
-bin_dep=(autoconf autoconf)
-lib_dep=(libcurl curl libexpat expat)
+bin_dep=(autoconf)
+lib_dep=(curl expat)

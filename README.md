@@ -99,8 +99,8 @@ Following parameters can be set as shell script.
 |before_configure|This is function. Commands executed before `configure`.<br>If `configure` doesn't have `--prefix` but it set prefix in other way, then set `configure=""` and write configure command in `before_configure`.|function before_configure {<br>  :<br>}|
 |make_cmd|This is function for make command.|function make_cmd {<br>  make all && make install<br>}|
 |get_latest|This is function to get the latest version of the package. It is used if `version` is not specified, or `latest` command is executed. |Only `gnu` type has default method.|
-|bin_dep|Array of executable packages on which the package depending on.<br>One dependency must be a set of executable name and package name likee `lib_dep=(libcurl curl libexpat expat)`|`()`|
-|lib_dep|Array of library packages on which the package depending on.<br>One dependency must be a set of library name and package name likee `bin_dep=(automake automake autoconf autoconf)`|`()`|
+|bin_dep|Array of depending executable packages.<br>If the package and executable are the same name, just put the name. Otherwise put `<exe>_package_<package>`.<br>e.g. `lib_dep=(my-exe exe-name_package_package-name)`|`()`|
+|lib_dep|Array of depending library packages.<br>If the library file has such `lib<package>.so`, just put the package name. Otherwise put `<lib>_package_<package>`.<br>e.g. `lib_dep=(my-lib lib-name_package_package-name)`|`()`|
 
 ### `inst_type`
 

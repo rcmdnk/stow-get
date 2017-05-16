@@ -512,12 +512,18 @@ while [ "$i" -lt "${#packages[@]}" ];do
   deps=0
   j=0
   while [ "$j" -lt ${#bin_dep[@]} ];do
-    p=${bin_dep[j+1]}
-    if [ "$p" = "" ];then
-      err "Configuration file for $p has wrong bin_dep definition."
+    b=${bin_dep[j]}
+    p=${b}
+    if [[ "$p" =~ _package_ ]];then
+      bp=(${p/_package_/ })
+      b=${bp[0]}
+      p=${bp[1]}
+    fi
+    if [ "$b" = "" ] || [ "$p" = "" ];then
+      err "Configuration file for ${bin_dep[j]} has wrong bin_dep definition."
       exit $EXIT_WRONG_BIN_DEP
     fi
-    if ! check_bin "${bin_dep[j]}";then
+    if ! check_bin "$b";then
       if ! echo " ${pre_packages[*]} "|grep -q " $p ";then
         if echo " ${packages[*]} "|grep -q " $p ";then
           packages=($(echo " ${packages[*]} "|sed "s/ $p / /"))
@@ -526,16 +532,22 @@ while [ "$i" -lt "${#packages[@]}" ];do
         deps=1
       fi
     fi
-    j=$((j+2))
+    ((j++))
   done
   j=0
   while [ "$j" -lt ${#lib_dep[@]} ];do
-    p=${lib_dep[j+1]}
-    if [ "$p" = "" ];then
-      err "Configuration file for $p has wrong lib_dep definition."
+    l=${lib_dep[j]}
+    p=${l}
+    if [[ "$p" =~ _package_ ]];then
+      lp=(${p/_package_/ })
+      l=${lp[0]}
+      p=${lp[1]}
+    fi
+    if [ "$l" = "" ] || [ "$p" = "" ];then
+      err "Configuration file for ${lib_dep[j]} has wrong lib_dep definition."
       exit $EXIT_WRONG_LIB_DEP
     fi
-    if ! check_lib "${lib_dep[j]}";then
+    if ! check_lib "$l";then
       if ! echo " ${pre_packages[*]} "|grep -q " $p ";then
         if echo " ${packages[*]} "|grep -q " $p ";then
           packages=($(echo " ${packages[*]} "|sed "s/ $p / /"))
@@ -544,7 +556,7 @@ while [ "$i" -lt "${#packages[@]}" ];do
         deps=1
       fi
     fi
-    j=$((j+2))
+    ((j++))
   done
   if [ $deps -eq 0 ];then
     pre_packages=("${pre_packages[@]}" "$package")
