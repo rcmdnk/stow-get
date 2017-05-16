@@ -194,6 +194,8 @@ function get_pac_conf { ## {{{
     banner_v "No configuration file for $1 is found."
     if [ "$is_exit" -eq 1 ];then
       exit $EXIT_NO_PAC_CONF
+    else
+      return 1
     fi
   fi
 } ## }}}
@@ -442,10 +444,13 @@ fi
 
 # Info {{{
 if [ "$command" = "info" ];then
+  verbose=1
   for package in "${packages[@]}";do
     get_pac_conf "$package" 1
-    banner "Configuration for $package"
-    cat "$pac_conf"
+    if [ "$pac_conf" != "" ];then
+      banner "Configuration for $package"
+      cat "$pac_conf"
+    fi
   done
   exit
 fi
