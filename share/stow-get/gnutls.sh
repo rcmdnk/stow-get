@@ -1,1 +1,0 @@
-inst_type=gnu
