@@ -48,6 +48,7 @@ EXIT_NOT_GNU=108
 function set_inst_dir {
   inst_dir="$1"
   stow_dir="$inst_dir/stow"
+  current_dir="$stow_dir/current"
 }
 
 function set_default {
@@ -232,14 +233,17 @@ function set_target { # {{{
 } # }}}
 
 function clean_package { # {{{
-  cd_check "$stow_dir" 1 >/dev/null 2>&1
-  ret=$?
-  if [ $ret -eq 0 ];then
-    local pdirs=$(ls -d "${package}-STOW-"* 2>/dev/null)
-    if [ "$pdirs" != "" ];then
-      stow -D "${package}-STOW-"*
-      rm -rf "${package}-STOW-"*
-    fi
+  all=${1:-0}
+  local pdirs=$(get_dir_list "$stow_dir" "${package}-STOW-*")
+  if [ "$pdirs" != "" ];then
+    target_now=$target
+    for d in ${pdirs};do
+      if [ "$all" = "1" ] ||  [ "$d" != "$target_now" ];then
+        target="$d"
+        rm_package 1
+      fi
+    done
+    target=$target_now
   fi
 } # }}}
 
@@ -253,7 +257,7 @@ function check_lib { # {{{
   pathes=(${LD_LIBRARY_PATH//:/$'\n'})
   IFS=$IFS_ORIG
   for d in "${pathes[@]}";do
-    files=$(ls "$d/${1}"* 2>/dev/null)
+    files=$(get_file_list "$d" "${1}"* 2>/dev/null)
     if [ "$files" != "" ];then
       return 0
     fi
@@ -377,7 +381,38 @@ function stow_install_wrapper { ## {{{
 } ## }}}
 
 function get_file_dir_list { ## {{{
-  find "$1" -maxdepth 1 -mindepth 1 -name "$2" -print0|xargs -0 basename
+  find "$1" -maxdepth 1 -mindepth 1 -name "$2" -print0|xargs -0 -n1 basename
+} ## }}}
+
+function get_file_list { ## {{{
+  find "$1" -maxdepth 1 -mindepth 1 -type f -name "$2" -print0|xargs -0 -n1 basename
+} ## }}}
+
+function get_dir_list { ## {{{
+  find "$1" -maxdepth 1 -mindepth 1 -type d -name "$2" -print0|xargs -0 -n1 basename
+} ## }}}
+
+function add_package { ## {{{
+  # Ignore share/info/dir which causes a conflict sometime.
+  cd_check "$stow_dir"
+  stow --ignore="share/info/dir" "$target"
+  ret=$?
+  if [ $ret -ne 0 ];then
+    err "Failed to place pacakge:${target%%-STOW*} by stow."
+    exit $ret
+  fi
+  mkdir -p "$current_dir"
+  touch "$current_dir/$target"
+} ## }}}
+
+function rm_package { ## {{{
+  clean=${1:-0}
+  cd_check "$stow_dir"
+  stow -D "$target"
+  rm -f "${current_dir}/${target}"
+  if [ "$clean" = "1" ];then
+    rm -rf "${stow_dir:?}/${target}"
+  fi
 } ## }}}
 
 # }}} functions
@@ -463,7 +498,7 @@ fi
 
 # List {{{
 if [ "$command" = "list" ];then
-  pac_list=$(get_file_dir_list "$stow_dir" "*-STOW-*"|awk '{split($1, tmp, "-STOW-")}{print tmp[1]}')
+  pac_list=$(get_file_list "$current_dir" "*-STOW-*"|awk '{split($1, tmp, "-STOW-")}{print tmp[1]}')
   if [ -t 1 ];then
     echo "$pac_list"|column
   else
@@ -476,7 +511,7 @@ fi
 # Packages {{{
 if [ "$command" = "packages" ];then
   for d in "${conf_dir[@]}";do
-    conf_list=$(get_file_dir_list "$d" "*.sh"|sed 's/.sh$//')
+    conf_list=$(get_file_list "$d" "*.sh"|sed 's/.sh$//')
     if [ -t 1 ];then
       echo "$conf_list"|column
     else
@@ -511,8 +546,8 @@ done
 if [ "$command" = "uninstall" ];then
   for package in "${packages[@]}";do
     source_pac_conf
-    banner "Uninstalling $stow_dir/${package}-STOW-\*"
-    clean_package
+    banner "Uninstalling ${package}"
+    rm_package
   done
   exit
 fi
@@ -598,14 +633,11 @@ for package in "${packages[@]}";do
     if [ "$force" -eq 1 ];then
       banner_v "Reinstall $target."
       if [ $dryrun -eq 0 ];then
-        cd_check "$stow_dir"
-        stow -D "$target"
-        rm -rf "$target"
+        rm_package
       fi
     else
       if [ $dryrun -eq 0 ];then
-        cd_check "$stow_dir"
-        stow --ignore="share/info/dir" "$target"
+        add_package
       fi
       continue
     fi
@@ -616,9 +648,6 @@ for package in "${packages[@]}";do
   if [ $dryrun -eq 1 ];then
     continue
   fi
-
-  # Delte old stow package
-  clean_package
 
   # Install
   if [ "$verbose" -eq 1 ];then
@@ -636,15 +665,7 @@ for package in "${packages[@]}";do
     exit $ret
   fi
 
-  cd_check "$stow_dir"
-
-  # Install. ignore share/info/dir which causes a conflict sometime.
-  stow --ignore="share/info/dir" "$target"
-  ret=$?
-  if [ $ret -ne 0 ];then
-    err "Failed to place by stow."
-    exit $ret
-  fi
+  add_package
 done # }}}
 
 # vim: foldmethod=marker
