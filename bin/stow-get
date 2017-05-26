@@ -117,6 +117,7 @@ Sub commands:
    rm/remove      Aliases of uninstall.
    list           List up installed packages.
    packages       List up available packages which have configuration files.
+   cleanup        Clean up old packages
    info <package> Show configuration file of package.
    latest <package>
                   Show the latest version of package.
@@ -232,19 +233,17 @@ function set_target { # {{{
   target=${package}-STOW-${target_postfix:-${version}}
 } # }}}
 
-function clean_package { # {{{
-  all=${1:-0}
-  local pdirs=$(get_dir_list "$stow_dir" "${package}-STOW-*")
-  if [ "$pdirs" != "" ];then
-    target_now=$target
-    for d in ${pdirs};do
-      if [ "$all" = "1" ] ||  [ "$d" != "$target_now" ];then
-        target="$d"
-        rm_package 1
-      fi
-    done
-    target=$target_now
-  fi
+function cleanup_package { # {{{
+  local target_tmp=$target
+  local current_list=$(get_file_list "$current_dir" "*-STOW-*")
+  local dir_list=$(get_dir_list "$stow_dir" "*-STOW-*")
+  for d in ${dir_list};do
+    if ! echo "$current_list"|grep -q "^${d}$";then
+      target="$d"
+      rm_package 1
+    fi
+  done
+  target=$target_tmp
 } # }}}
 
 function check_bin { ## {{{
@@ -407,9 +406,11 @@ function add_package { ## {{{
 
 function rm_package { ## {{{
   clean=${1:-0}
-  cd_check "$stow_dir"
-  stow -D "$target"
-  rm -f "${current_dir}/${target}"
+  if [ -f "${current_dir}/${target}" ];then
+    cd_check "$stow_dir"
+    stow -D "$target"
+    rm -f "${current_dir}/${target}"
+  fi
   if [ "$clean" = "1" ];then
     rm -rf "${stow_dir:?}/${target}"
   fi
@@ -419,7 +420,7 @@ function rm_package { ## {{{
 
 # Check argumetns {{{
 
-COMMANDS=(install rm remove uninstall list packages info latest version help)
+COMMANDS=(install rm remove uninstall list packages cleanup info latest version help)
 NEED_ARGS=(uninstall info latest)
 
 if [ "$#" -eq 0 ] || [ "$1" = "help" ] || [ "$1" = "-h" ];then
@@ -518,6 +519,12 @@ if [ "$command" = "packages" ];then
       echo "$conf_list"
     fi
   done
+  exit
+fi
+
+# Clean up {{{
+if [ "$command" = "cleanup" ];then
+  cleanup_package
   exit
 fi
 # }}}
@@ -640,6 +647,17 @@ for package in "${packages[@]}";do
         add_package
       fi
       continue
+    fi
+  else
+    # Uninstall old package
+    current_package=$(get_file_list "$current_dir" "${package}-STOW-*")
+    if [ "$current_package" != "" ];then
+      target_tmp=$target
+      for p in ${current_package};do
+        target=$p
+        rm_package 1
+      done
+      target=$target_tmp
     fi
   fi
 

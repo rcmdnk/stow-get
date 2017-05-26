@@ -18,8 +18,10 @@ script:
   - ./bin/stow-get install -V
   - ./bin/stow-get install $(ls share/stow-get/*sh|cut -d"/" -f3|sed "s/.sh$//")
   - ls "$INST_DIR/stow"
+  - ls "$INST_DIR/stow/current"
   - ./bin/stow-get uninstall screen
   - ls "$INST_DIR/stow"
+  - ls "$INST_DIR/stow/current"
   - ./bin/stow-get list
   - ./bin/stow-get packages
   - ./bin/stow-get info screen
@@ -29,3 +31,6 @@ script:
   - echo "target_postfix=test" >> share/stow-get/autoconf.sh
   - ./bin/stow-get install autoconf
   - ls "$INST_DIR/stow"
+  - ./bin/stow-get cleanup
+  - ls "$INST_DIR/stow"
+  - ls "$INST_DIR/stow/current"
