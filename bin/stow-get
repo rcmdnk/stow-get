@@ -376,6 +376,10 @@ function stow_install_wrapper { ## {{{
   fi
 } ## }}}
 
+function get_file_dir_list { ## {{{
+  find "$1" -maxdepth 1 -mindepth 1 -name "$2" -print0|xargs -0 basename
+} ## }}}
+
 # }}} functions
 
 # Check argumetns {{{
@@ -459,7 +463,12 @@ fi
 
 # List {{{
 if [ "$command" = "list" ];then
-  echo $(ls "$stow_dir"|awk '{split($1, tmp, "-STOW-")}{print tmp[1]}')
+  pac_list=$(get_file_dir_list "$stow_dir" "*-STOW-*"|awk '{split($1, tmp, "-STOW-")}{print tmp[1]}')
+  if [ -t 1 ];then
+    echo "$pac_list"|column
+  else
+    echo "$pac_list"
+  fi
   exit
 fi
 # }}}
@@ -467,7 +476,12 @@ fi
 # Packages {{{
 if [ "$command" = "packages" ];then
   for d in "${conf_dir[@]}";do
-    echo $(ls "$d"|sed 's/.sh$//')
+    conf_list=$(get_file_dir_list "$d" "*.sh"|sed 's/.sh$//')
+    if [ -t 1 ];then
+      echo "$conf_list"|column
+    else
+      echo "$conf_list"
+    fi
   done
   exit
 fi
