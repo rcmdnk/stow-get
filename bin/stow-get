@@ -48,6 +48,7 @@ EXIT_NOT_GNU=108
 function set_inst_dir {
   inst_dir="$1"
   stow_dir="$inst_dir/stow"
+  current_dir="$stow_dir/current"
 }
 
 function set_default {
@@ -69,6 +70,7 @@ function reset_inst_val {
   version=""
   inst_type=""
   target=""
+  target_postfix=""
   url_prefix=""
   tarball=""
   user=""
@@ -115,6 +117,7 @@ Sub commands:
    rm/remove      Aliases of uninstall.
    list           List up installed packages.
    packages       List up available packages which have configuration files.
+   cleanup        Clean up old packages
    info <package> Show configuration file of package.
    latest <package>
                   Show the latest version of package.
@@ -227,19 +230,20 @@ function set_version { # {{{
 
 function set_target { # {{{
   set_version
-  target=${package}-STOW-${version}
+  target=${package}-STOW-${target_postfix:-${version}}
 } # }}}
 
-function clean_package { # {{{
-  cd_check "$stow_dir" 1 >/dev/null 2>&1
-  ret=$?
-  if [ $ret -eq 0 ];then
-    local pdirs=$(ls -d "${package}-STOW-"* 2>/dev/null)
-    if [ "$pdirs" != "" ];then
-      stow -D "${package}-STOW-"*
-      rm -rf "${package}-STOW-"*
+function cleanup_package { # {{{
+  local target_tmp=$target
+  local current_list=$(get_file_list "$current_dir" "*-STOW-*")
+  local dir_list=$(get_dir_list "$stow_dir" "*-STOW-*")
+  for d in ${dir_list};do
+    if ! echo "$current_list"|grep -q "^${d}$";then
+      target="$d"
+      rm_package 1
     fi
-  fi
+  done
+  target=$target_tmp
 } # }}}
 
 function check_bin { ## {{{
@@ -252,7 +256,7 @@ function check_lib { # {{{
   pathes=(${LD_LIBRARY_PATH//:/$'\n'})
   IFS=$IFS_ORIG
   for d in "${pathes[@]}";do
-    files=$(ls "$d/${1}"* 2>/dev/null)
+    files=$(get_file_list "$d" "${1}"* 2>/dev/null)
     if [ "$files" != "" ];then
       return 0
     fi
@@ -284,7 +288,7 @@ function get_tarball  { # {{{
 } # }}}
 
 function stow_install_tarball { ## {{{
-  directory=${directory:-${target/-STOW/}}
+  directory=${directory:-${package}-${version}}
   tarball=${tarball:-${directory}.tar.gz}
   get_tarball "$url_prefix/$tarball"
   ret=$?
@@ -375,11 +379,48 @@ function stow_install_wrapper { ## {{{
   fi
 } ## }}}
 
+function get_file_dir_list { ## {{{
+  find "$1" -maxdepth 1 -mindepth 1 -name "$2" -print0|xargs -0 -n1 basename
+} ## }}}
+
+function get_file_list { ## {{{
+  find "$1" -maxdepth 1 -mindepth 1 -type f -name "$2" -print0|xargs -0 -n1 basename
+} ## }}}
+
+function get_dir_list { ## {{{
+  find "$1" -maxdepth 1 -mindepth 1 -type d -name "$2" -print0|xargs -0 -n1 basename
+} ## }}}
+
+function add_package { ## {{{
+  # Ignore share/info/dir which causes a conflict sometime.
+  cd_check "$stow_dir"
+  stow --ignore="share/info/dir" "$target"
+  ret=$?
+  if [ $ret -ne 0 ];then
+    err "Failed to place pacakge:${target%%-STOW*} by stow."
+    exit $ret
+  fi
+  mkdir -p "$current_dir"
+  touch "$current_dir/$target"
+} ## }}}
+
+function rm_package { ## {{{
+  clean=${1:-0}
+  if [ -f "${current_dir}/${target}" ];then
+    cd_check "$stow_dir"
+    stow -D "$target"
+    rm -f "${current_dir}/${target}"
+  fi
+  if [ "$clean" = "1" ];then
+    rm -rf "${stow_dir:?}/${target}"
+  fi
+} ## }}}
+
 # }}} functions
 
 # Check argumetns {{{
 
-COMMANDS=(install rm remove uninstall list packages info latest version help)
+COMMANDS=(install rm remove uninstall list packages cleanup info latest version help)
 NEED_ARGS=(uninstall info latest)
 
 if [ "$#" -eq 0 ] || [ "$1" = "help" ] || [ "$1" = "-h" ];then
@@ -458,7 +499,12 @@ fi
 
 # List {{{
 if [ "$command" = "list" ];then
-  echo $(ls "$stow_dir"|awk '{split($1, tmp, "-STOW-")}{print tmp[1]}')
+  pac_list=$(get_file_list "$current_dir" "*-STOW-*"|awk '{split($1, tmp, "-STOW-")}{print tmp[1]}')
+  if [ -t 1 ];then
+    echo "$pac_list"|column
+  else
+    echo "$pac_list"
+  fi
   exit
 fi
 # }}}
@@ -466,8 +512,19 @@ fi
 # Packages {{{
 if [ "$command" = "packages" ];then
   for d in "${conf_dir[@]}";do
-    echo $(ls "$d"|sed 's/.sh$//')
+    conf_list=$(get_file_list "$d" "*.sh"|sed 's/.sh$//')
+    if [ -t 1 ];then
+      echo "$conf_list"|column
+    else
+      echo "$conf_list"
+    fi
   done
+  exit
+fi
+
+# Clean up {{{
+if [ "$command" = "cleanup" ];then
+  cleanup_package
   exit
 fi
 # }}}
@@ -496,8 +553,8 @@ done
 if [ "$command" = "uninstall" ];then
   for package in "${packages[@]}";do
     source_pac_conf
-    banner "Uninstalling $stow_dir/${package}-STOW-\*"
-    clean_package
+    banner "Uninstalling ${package}"
+    rm_package
   done
   exit
 fi
@@ -536,8 +593,8 @@ while [ "$i" -lt "${#packages[@]}" ];do
   done
   j=0
   while [ "$j" -lt ${#lib_dep[@]} ];do
-    l=${lib_dep[j]}
-    p=${l}
+    p=${lib_dep[j]}
+    l=lib${p}
     if [[ "$p" =~ _package_ ]];then
       lp=(${p/_package_/ })
       l=${lp[0]}
@@ -583,16 +640,24 @@ for package in "${packages[@]}";do
     if [ "$force" -eq 1 ];then
       banner_v "Reinstall $target."
       if [ $dryrun -eq 0 ];then
-        cd_check "$stow_dir"
-        stow -D "$target"
-        rm -rf "$target"
+        rm_package
       fi
     else
       if [ $dryrun -eq 0 ];then
-        cd_check "$stow_dir"
-        stow --ignore="share/info/dir" "$target"
+        add_package
       fi
       continue
+    fi
+  else
+    # Uninstall old package
+    current_package=$(get_file_list "$current_dir" "${package}-STOW-*")
+    if [ "$current_package" != "" ];then
+      target_tmp=$target
+      for p in ${current_package};do
+        target=$p
+        rm_package 1
+      done
+      target=$target_tmp
     fi
   fi
 
@@ -601,9 +666,6 @@ for package in "${packages[@]}";do
   if [ $dryrun -eq 1 ];then
     continue
   fi
-
-  # Delte old stow package
-  clean_package
 
   # Install
   if [ "$verbose" -eq 1 ];then
@@ -621,15 +683,7 @@ for package in "${packages[@]}";do
     exit $ret
   fi
 
-  cd_check "$stow_dir"
-
-  # Install. ignore share/info/dir which causes a conflict sometime.
-  stow --ignore="share/info/dir" "$target"
-  ret=$?
-  if [ $ret -ne 0 ];then
-    err "Failed to place by stow."
-    exit $ret
-  fi
+  add_package
 done # }}}
 
 # vim: foldmethod=marker
