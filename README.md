@@ -90,7 +90,8 @@ Following parameters can be set as shell script.
 |Parameter|Description|Default|
 |:-:|:-|:-|
 |inst_type| Type of installation. Available types are: `gnu`, `tarball`, `github` or `github_direct`. This parameter is mandatory.|`gnu`|
-|version|Version of th package.|-|
+|version|Version of th package.|`""`|
+|target_postfix|By default, a package is installed in `$stow_dir/<package>-STOW-<version>`(=`$stow_dir/$target`).<br>If `target_postfix` is defined, a directory name is changed to `<package>-STOW-<target_postfix>`.|`""`|
 |tarball|tarball name.|`<package>-<version>.tar.gz`|
 |url_prefix| URL where tarball file is placed.|For gnu: `http://ftp.gnu.org/gnu/<package>`. <br>For github: `https://github.com/<package>/<package>/archive`|
 |configure|Configure command. Most of packages have `configure` file to be executed first.|`./configure`|

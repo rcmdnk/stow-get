@@ -26,3 +26,6 @@ script:
   - ./bin/stow-get latest wget
   - ./bin/stow-get install -t gnu wget
   - ./bin/stow-get install -c ./conf_file -d ./conf_dir
+  - echo "target_postfix=test" >> share/stow-get/autoconf.sh
+  - ./bin/stow-get install autoconf
+  - ls "$INST_DIR/stow"

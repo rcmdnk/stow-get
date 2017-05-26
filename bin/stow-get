@@ -69,6 +69,7 @@ function reset_inst_val {
   version=""
   inst_type=""
   target=""
+  target_postfix=""
   url_prefix=""
   tarball=""
   user=""
@@ -227,7 +228,7 @@ function set_version { # {{{
 
 function set_target { # {{{
   set_version
-  target=${package}-STOW-${version}
+  target=${package}-STOW-${target_postfix:-${version}}
 } # }}}
 
 function clean_package { # {{{
@@ -284,7 +285,7 @@ function get_tarball  { # {{{
 } # }}}
 
 function stow_install_tarball { ## {{{
-  directory=${directory:-${target/-STOW/}}
+  directory=${directory:-${package}-${version}}
   tarball=${tarball:-${directory}.tar.gz}
   get_tarball "$url_prefix/$tarball"
   ret=$?
@@ -536,8 +537,8 @@ while [ "$i" -lt "${#packages[@]}" ];do
   done
   j=0
   while [ "$j" -lt ${#lib_dep[@]} ];do
-    l=${lib_dep[j]}
-    p=${l}
+    p=${lib_dep[j]}
+    l=lib${p}
     if [[ "$p" =~ _package_ ]];then
       lp=(${p/_package_/ })
       l=${lp[0]}
