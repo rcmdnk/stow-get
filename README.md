@@ -30,7 +30,7 @@ This will install stow-get in `$HOME/usr/local`
 
 If you want to install other directory, do like:
 
-    $ curl -fsSL https://raw.github.com/rcmdnk/trash/install/install.sh|  prefix=/usr/local bash
+    $ curl -fsSL https://raw.github.com/rcmdnk/stow-get/install/install.sh|  prefix=/usr/local bash
 
 Or, simply download (or git clone) the script and set where you like.
 
