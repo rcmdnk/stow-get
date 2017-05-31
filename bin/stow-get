@@ -42,6 +42,8 @@ EXIT_WRONG_LIB_DEP=105
 EXIT_NO_PAC_CONF=106
 EXIT_NO_VERSION=107
 EXIT_NOT_GNU=108
+EXIT_INVALID_INST_TYPE=109
+EXIT_NO_STOW_INSTALL=110
 # }}}
 
 # Default variables {{{
@@ -93,6 +95,10 @@ function reset_inst_val {
   function get_latest {
     if [ "$inst_type" = "gnu" ];then
       get_gnu_latest "$@"
+    elif [ "$inst_type" = "github" ];then
+      get_github_latest "$@"
+    elif [ "$inst_type" = "github_direct" ];then
+      get_github_direct_latest "$@"
     else
       err "get_latest is undefined for $inst_type"
     fi
@@ -214,11 +220,18 @@ function source_pac_conf { ## {{{
     inst_type=$default_inst_type
   fi
   set_target
+
+  local init_type=init_"$inst_type"
+  if ! check_bin "$init_type" >/dev/null 2>&1;then
+    err "Invalid inst_type: $inst_type for $package"
+    return $EXIT_INVALID_INST_TYPE
+  fi
+  eval init_"$inst_type"
 } ## }}}
 
 function set_version { # {{{
   if [ "$version" = "" ] || [ "$version" = "latest" ];then
-    get_latest "$package"
+    get_latest
     ret=$?
     if [ $ret -ne 0 ];then
       err "version(=$version) is not recognized for $package."
@@ -287,96 +300,104 @@ function get_tarball  { # {{{
   fi
 } # }}}
 
-function stow_install_tarball { ## {{{
+function init_tarball { ## {{{
   directory=${directory:-${package}-${version}}
   tarball=${tarball:-${directory}.tar.gz}
-  get_tarball "$url_prefix/$tarball"
-  ret=$?
-  if [ $ret -ne 0 ];then
-    return $ret
-  fi
 
-  cd_check "$directory" 1
-  ret=$?
-  if [ $ret -ne 0 ];then
-    return $ret
-  fi
+  if ! check_bin stow_install;then
+    function stow_install {
+      get_tarball "$url_prefix/$tarball"
+      ret=$?
+      if [ $ret -ne 0 ];then
+        return $ret
+      fi
 
-  before_configure
-  ret=$?
-  if [ $ret -ne 0 ];then
-    return $ret
-  fi
+      cd_check "$directory" 1
+      ret=$?
+      if [ $ret -ne 0 ];then
+        return $ret
+      fi
 
-  if [ "$configure" != "" ];then
-    CFLAGS="-L$inst_dir/lib -I$inst_dir/include" \
-      CPPFLAGS="-L$inst_dir/lib -I$inst_dir/include" \
-      LDFLAGS="-L$inst_dir/lib" \
-      "$configure" --prefix="$stow_dir/$target" "$configure_options"
-    ret=$?
-    if [ $ret -ne 0 ];then
-      return $ret
-    fi
-  fi
+      before_configure
+      ret=$?
+      if [ $ret -ne 0 ];then
+        return $ret
+      fi
 
-  make_cmd
+      if [ "$configure" != "" ];then
+        CFLAGS="-L$inst_dir/lib -I$inst_dir/include" \
+          CPPFLAGS="-L$inst_dir/lib -I$inst_dir/include" \
+          LDFLAGS="-L$inst_dir/lib" \
+          "$configure" --prefix="$stow_dir/$target" "$configure_options"
+        ret=$?
+        if [ $ret -ne 0 ];then
+          return $ret
+        fi
+      fi
+
+      make_cmd
+    }
+  fi
 } ## }}}
 
-function stow_install_gnu { ## {{{
+function init_gnu { ## {{{
   url_prefix=${url_prefix:-http://ftp.gnu.org/gnu/$package}
-  stow_install_tarball
+  init_tarball
 } ## }}}
 
-function get_gnu_latest { ## {{{
-  local p="$1"
-  local output_time="${2:-0}"
-  local url="http://ftp.gnu.org/gnu/$p/?C=M;O=A"
-  local html="$(curl "$url" 2>/dev/null)"
-  local latest="$(printf "$html"|grep "$p"|grep ".tar.gz<"|grep "$1"|grep -v "\-doc\-"|grep -v latest|tail -n1)"
-  local params=$(echo "$latest"|sed 's/<[^>]*>/ /g')
-  if [ "$params" = "" ];then
-    err "$p is not a GNU package."
-    exit $EXIT_NOT_GNU
-  fi
-  version=$(echo "$params"|awk -v p="$p" '{sub(p"-", "", $1)}{sub(".tar.gz", "", $1)}{print $1}')
-  if [ "$output_time" -eq 1 ];then
-    printf "%15s %8s %8s %3s %10s %5s %5s\n" $(echo "$params"|awk -v p="$p" '{sub(p"-", "", $1)}{sub(".tar.gz", "", $1)}{print p " " $1 "    updated at: " $2 " " $3 " " $4}')
-  fi
-} ## }}}
-
-function stow_install_github { ## {{{
+function init_github { ## {{{
   tarball=${tarball:-v${version}.tar.gz}
   user=${user:-${package}}
   repository=${repository:-${package}}
   url_prefix=${url_prefix:-https://github.com/$user/$repository/archive}
-  stow_install_tarball
+  init_tarball
 } ## }}}
 
-function stow_install_github_direct { ## {{{
+function init_github_direct { ## {{{
   configure=""
   function make_cmd {
     cp -r . "$stow_dir/$target"
   }
-  stow_install_github
+  init_github
 } ## }}}
 
 function stow_install_wrapper { ## {{{
   cd_check "$TMP_DIR"
 
-  if type -a "stow_install" >/dev/null 2>&1;then
-    stow_install
-  elif [ "$inst_type" = "tarball" ];then
-    stow_install_tarball
-  elif [ "$inst_type" = "gnu" ];then
-    stow_install_gnu
-  elif [ "$inst_type" = "github" ];then
-    stow_install_github
-  elif [ "$inst_type" = "github_direct" ];then
-    stow_install_github_direct
-  else
-    err "Invalid inst_type: $inst_type, and stow_install function is not set."
-    return 1
+  if ! check_bin stow_install;then
+    err "stow_install function is not set."
+    return $EXIT_NO_STOW_INSTALL
   fi
+  stow_install
+} ## }}}
+
+function get_gnu_latest { ## {{{
+  local output_detail="${1:-0}"
+  local url="http://ftp.gnu.org/gnu/$p/?C=M;O=A"
+  local html="$(curl "$url" 2>/dev/null)"
+  local latest="$(printf "$html"|grep "$package"|grep ".tar.gz<"|grep "$1"|grep -v "\-doc\-"|grep -v latest|tail -n1)"
+  local params=$(echo "$latest"|sed 's/<[^>]*>/ /g')
+  if [ "$params" = "" ];then
+    err "$package is not a GNU package."
+    exit $EXIT_NOT_GNU
+  fi
+  version=$(echo "$params"|awk -v p="$package" '{sub(p"-", "", $1)}{sub(".tar.gz", "", $1)}{print $1}')
+  if [ "$output_detail" -eq 1 ];then
+    printf "%15s %8s %8s %3s %10s %5s %5s\n" $(echo "$params"|awk -v p="$package" '{sub(p"-", "", $1)}{sub(".tar.gz", "", $1)}{print p " " $1 "    updated at: " $2 " " $3 " " $4}')
+  fi
+} ## }}}
+
+function get_github_latest { ## {{{
+  local output_detail="${1:-0}"
+  user=${user:-${package}}
+  repository=${repository:-${package}}
+  if [ "$output_detail" -eq 1 ];then
+    :
+  fi
+} ## }}}
+
+function get_github_direct_latest { ## {{{
+  get_gnu_github "$@"
 } ## }}}
 
 function get_file_dir_list { ## {{{
@@ -468,7 +489,7 @@ if [ "$command" = "latest" ];then
   packages=("$@")
   for package in "$@";do
     source_pac_conf
-    get_latest "$package" 1
+    get_latest 1
   done
   exit
 fi
