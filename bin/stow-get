@@ -4,7 +4,7 @@
 #
 # Package manager with stow.
 #
-STOW_GET_VERSION=v0.0.4
+STOW_GET_VERSION=v0.0.5
 STOW_GET_DATE="31/May/2017"
 #
 # }}}
@@ -373,7 +373,7 @@ function stow_install_wrapper { ## {{{
 
 function get_gnu_latest { ## {{{
   local output_detail="${1:-0}"
-  local url="http://ftp.gnu.org/gnu/$p/?C=M;O=A"
+  local url="http://ftp.gnu.org/gnu/$package/?C=M;O=A"
   local html="$(curl "$url" 2>/dev/null)"
   local latest="$(printf "$html"|grep "$package"|grep ".tar.gz<"|grep "$1"|grep -v "\-doc\-"|grep -v latest|tail -n1)"
   local params=$(echo "$latest"|sed 's/<[^>]*>/ /g')
@@ -400,16 +400,27 @@ function get_github_direct_latest { ## {{{
   get_gnu_github "$@"
 } ## }}}
 
+function xargs_wrapper { ## {{{
+  if [ ! -v xargs_opt ];then
+    if echo|xargs -r >/dev/null 2>&1;then
+      xargs_opt="-r"
+    else
+      xargs_opt=""
+    fi
+  fi
+  xargs "$@"
+} ## }}}
+
 function get_file_dir_list { ## {{{
-  find "$1" -maxdepth 1 -mindepth 1 -name "$2" -print0 >/dev/null|xargs -0 -n1 basename
+  find "$1" -maxdepth 1 -mindepth 1 -name "$2" -print0 2>/dev/null|xargs_wrapper -0 -n1 basename
 } ## }}}
 
 function get_file_list { ## {{{
-  find "$1" -maxdepth 1 -mindepth 1 -type f -name "$2" -print0 >/dev/null|xargs -0 -n1 basename
+  find "$1" -maxdepth 1 -mindepth 1 -type f -name "$2" -print0 2>/dev/null|xargs_wrapper -0 -n1 basename
 } ## }}}
 
 function get_dir_list { ## {{{
-  find "$1" -maxdepth 1 -mindepth 1 -type d -name "$2" -print0 >/dev/null|xargs -0 -n1 basename
+  find "$1" -maxdepth 1 -mindepth 1 -type d -name "$2" -print0 2>/dev/null|xargs_wrapper -0 -n1 basename
 } ## }}}
 
 function add_package { ## {{{
@@ -559,7 +570,7 @@ fi
 if ! echo "$LD_LIBRARY_PATH"| grep -q "$inst_dir/lib";then
 #  warn "LD_LIBRARY_PATH doesn't include $inst_dir/lib,
 #which may make a problem to search dependencies."
-  export PATH="$inst_dir/lib64:$inst_dir/lib:$LD_LIBRARY_PATH"
+  export LD_LIBRARY_PATH="$inst_dir/lib64:$inst_dir/lib:$LD_LIBRARY_PATH"
 fi
 if ! echo "$PYTHONPATH"| grep -q "$inst_dir/lib";then
 #  warn "LD_LIBRARY_PATH doesn't include $inst_dir/lib,
