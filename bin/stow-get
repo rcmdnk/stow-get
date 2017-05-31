@@ -380,15 +380,15 @@ function stow_install_wrapper { ## {{{
 } ## }}}
 
 function get_file_dir_list { ## {{{
-  find "$1" -maxdepth 1 -mindepth 1 -name "$2" -print0|xargs -0 -n1 basename
+  find "$1" -maxdepth 1 -mindepth 1 -name "$2" -print0 >/dev/null|xargs -0 -n1 basename
 } ## }}}
 
 function get_file_list { ## {{{
-  find "$1" -maxdepth 1 -mindepth 1 -type f -name "$2" -print0|xargs -0 -n1 basename
+  find "$1" -maxdepth 1 -mindepth 1 -type f -name "$2" -print0 >/dev/null|xargs -0 -n1 basename
 } ## }}}
 
 function get_dir_list { ## {{{
-  find "$1" -maxdepth 1 -mindepth 1 -type d -name "$2" -print0|xargs -0 -n1 basename
+  find "$1" -maxdepth 1 -mindepth 1 -type d -name "$2" -print0 >/dev/null|xargs -0 -n1 basename
 } ## }}}
 
 function add_package { ## {{{
