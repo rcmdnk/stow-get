@@ -552,12 +552,19 @@ fi
 
 # Check PATH/LD_LIBRARY_PATH {{{
 if ! echo "$PATH"| grep -q "$inst_dir/bin";then
-  warn "PATH doesn't include $inst_dir/bin,
-which may make a problem to search dependencies or to use stow command."
+#  warn "PATH doesn't include $inst_dir/bin,
+#which may make a problem to search dependencies or to use stow command."
+  export PATH="$inst_dir/bin:$PATH"
 fi
 if ! echo "$LD_LIBRARY_PATH"| grep -q "$inst_dir/lib";then
-  warn "LD_LIBRARY_PATH doesn't include $inst_dir/lib,
-which may make a problem to search dependencies."
+#  warn "LD_LIBRARY_PATH doesn't include $inst_dir/lib,
+#which may make a problem to search dependencies."
+  export PATH="$inst_dir/lib64:$inst_dir/lib:$LD_LIBRARY_PATH"
+fi
+if ! echo "$PYTHONPATH"| grep -q "$inst_dir/lib";then
+#  warn "LD_LIBRARY_PATH doesn't include $inst_dir/lib,
+#which may make a problem to search dependencies."
+  export PYTHONPATH="$inst_dir/lib:$PYTHONPATH"
 fi
 # }}}
 
