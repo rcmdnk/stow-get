@@ -390,9 +390,9 @@ function get_gnu_latest { ## {{{
 function get_github_latest { ## {{{
   local output_detail="${1:-0}"
   local json=$(curl https://api.github.com/repos/$user/$repository/releases/latest 2>/dev/null)
-  local tag_name=$(echo "$json"|grep "\"name\":"|cut -d":" -f2|cut -d '"' -f2)
+  local tag_name=$(echo "$json"|grep "\"name\":"|cut -d":" -f2|cut -d '"' -f2|sed 's/^v//')
   if [ "$tag_name" = "" ];then
-    local tag_name=$(curl https://api.github.com/repos/$user/$repository/tags 2>/dev/null|grep "\"name\":"|head -n1|cut -d":" -f2|cut -d '"' -f2|cut -d"/" -f3)
+    local tag_name=$(curl https://api.github.com/repos/$user/$repository/tags 2>/dev/null|grep "\"name\":"|head -n1|cut -d":" -f2|cut -d '"' -f2|cut -d"/" -f3|sed 's/^v//')
     if [ "$output_detail" -eq 1 ];then
       local info="The latest tag"
     fi
