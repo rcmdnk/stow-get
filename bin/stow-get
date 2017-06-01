@@ -389,15 +389,24 @@ function get_gnu_latest { ## {{{
 
 function get_github_latest { ## {{{
   local output_detail="${1:-0}"
-  user=${user:-${package}}
-  repository=${repository:-${package}}
+  local json=$(curl https://api.github.com/repos/$user/$repository/releases/latest 2>/dev/null)
+  local tag_name=$(echo "$json"|grep "\"name\":"|cut -d":" -f2|cut -d '"' -f2)
+  if [ "$tag_name" = "" ];then
+    local tag_name=$(curl https://api.github.com/repos/$user/$repository/tags 2>/dev/null|grep "\"name\":"|head -n1|cut -d":" -f2|cut -d '"' -f2|cut -d"/" -f3)
+    if [ "$output_detail" -eq 1 ];then
+      local info="The latest tag"
+    fi
+  elif [ "$output_detail" -eq 1 ];then
+    local info=$(echo "$json"|grep "\"published_at\":"|cut -d":" -f2|cut -d '"' -f2)
+    info="The latest release published at: $info"
+  fi
   if [ "$output_detail" -eq 1 ];then
-    :
+    printf "%15s %8s %s\n" "$package" "$tag_name" "$info"
   fi
 } ## }}}
 
 function get_github_direct_latest { ## {{{
-  get_gnu_github "$@"
+  get_github_latest "$@"
 } ## }}}
 
 function xargs_wrapper { ## {{{
