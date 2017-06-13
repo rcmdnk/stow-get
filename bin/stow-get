@@ -412,7 +412,7 @@ function get_github_direct_latest { ## {{{
 } ## }}}
 
 function xargs_wrapper { ## {{{
-  if [ ! -v xargs_opt ];then
+  if [ -z "$xargs_opt" ] && [ "${xargs_opt-A}" = "A" ];then
     if echo|xargs -r >/dev/null 2>&1;then
       xargs_opt="-r"
     else
