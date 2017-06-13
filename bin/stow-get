@@ -395,18 +395,30 @@ function get_github_latest { ## {{{
   user=${user:-${package}}
   repository=${repository:-${package}}
   local output_detail="${1:-0}"
+  local info=""
   local json=$(curl https://api.github.com/repos/$user/$repository/releases/latest 2>/dev/null)
   version=$(echo "$json"|grep "\"name\":"|cut -d":" -f2|cut -d '"' -f2|sed 's/^v//')
-  if [ "$version" = "" ];then
-    version=$(curl https://api.github.com/repos/$user/$repository/tags 2>/dev/null|grep "\"name\":"|head -n1|cut -d":" -f2|cut -d '"' -f2|cut -d"/" -f3|sed 's/^v//')
-    if [ "$output_detail" -eq 1 ];then
-      local info="The latest tag"
-    fi
+  if [ "$version" != "" ];then
+    info=$(echo "$json"|grep "\"published_at\":"|cut -d":" -f2|cut -d '"' -f2)
+    info="The latest release published on: $info"
   elif [ "$output_detail" -eq 1 ];then
-    local info=$(echo "$json"|grep "\"published_at\":"|cut -d":" -f2|cut -d '"' -f2)
-    info="The latest release published at: $info"
+    curl https://api.github.com/repos/$user/$repository/tags
+    version=$(curl https://api.github.com/repos/$user/$repository/tags 2>/dev/null|grep "\"name\":"|head -n1|cut -d":" -f2|cut -d '"' -f2|cut -d"/" -f3|sed 's/^v//')
+    info="The latest tag"
   fi
-  if [ "$output_detail" -eq 1 ];then
+  # In case of API limitation
+  if [ "$version" = "" ];then
+    local url="https://github.com/$user/$repository/releases"
+    local html="$(curl "$url" 2>/dev/null)"
+    version=$(echo "$html"|grep css-truncate-target|cut -d ">" -f2 |cut -d"<" -f1)
+    if [ "$version" != "" ];then
+      info="The latest release published on: $(echo "$html"|grep -A1 "released this"|tail -n1|cut -d">" -f2|cut -d"<" -f1)"
+    else
+      version=$(echo "$html"|grep tag-name|head -n1|cut -d ">" -f2 |cut -d"<" -f1)
+      info="The latest tag published on: $(echo "$html"|grep "relative-time"|head -n1|cut -d">" -f2|cut -d"<" -f1)"
+    fi
+  fi
+  if [ "$output_detail" -eq 1 ] && [ "$version" != "" ];then
     printf "%15s %8s %s\n" "$package" "$version" "$info"
   fi
 } ## }}}
