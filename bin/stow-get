@@ -419,7 +419,7 @@ function xargs_wrapper { ## {{{
       xargs_opt=""
     fi
   fi
-  xargs "$@"
+  xargs $xargs_opt "$@"
 } ## }}}
 
 function get_file_dir_list { ## {{{
