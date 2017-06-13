@@ -102,6 +102,10 @@ function reset_inst_val {
     else
       err "get_latest is undefined for $inst_type"
     fi
+    if [ "$version" = "" ];then
+      err "Failed to get version for $package."
+      exit $EXIT_NO_VERSION
+    fi
   }
 }
 reset_inst_val
