@@ -41,7 +41,7 @@ EXIT_WRONG_BIN_DEP=104
 EXIT_WRONG_LIB_DEP=105
 EXIT_NO_PAC_CONF=106
 EXIT_NO_VERSION=107
-EXIT_NOT_GNU=108
+EXIT_NOT_INDEX=108
 EXIT_INVALID_INST_TYPE=109
 EXIT_NO_STOW_INSTALL=110
 # }}}
@@ -80,6 +80,7 @@ function reset_inst_val {
   directory=""
   configure="./configure"
   configure_options=""
+  index_for_latest=""
 
   bin_dep=()
   lib_dep=()
@@ -93,7 +94,9 @@ function reset_inst_val {
     make all && make install
   }
   function get_latest {
-    if [ "$inst_type" = "gnu" ];then
+    if [ "$index_for_latest" != "" ];then
+      get_index_latest "$index_for_latest" "$@"
+    elif [ "$inst_type" = "gnu" ];then
       get_gnu_latest "$@"
     elif [ "$inst_type" = "github" ];then
       get_github_latest "$@"
@@ -377,20 +380,24 @@ function stow_install_wrapper { ## {{{
   stow_install
 } ## }}}
 
-function get_gnu_latest { ## {{{
-  local output_detail="${1:-0}"
-  local url="http://ftp.gnu.org/gnu/$package/?C=M;O=A"
+function get_index_latest { ## {{{
+  local url="$1"
+  local output_detail="${2:-0}"
   local html="$(curl -k "$url" 2>/dev/null)"
-  local latest="$(printf "$html"|grep "$package"|grep ".tar.gz<"|grep "$1"|grep -v "\-doc\-"|grep -v latest|tail -n1)"
+  local latest="$(echo "$html"|grep "$package"|grep ".tar.gz<"|grep -v "\-doc\-"|grep -v latest|tail -n1)"
   local params=$(echo "$latest"|sed 's/<[^>]*>/ /g')
   if [ "$params" = "" ];then
-    err "$package is not a GNU package."
-    exit $EXIT_NOT_GNU
+    err "Failed to get the latest version of $package from $url"
+    exit $EXIT_NOT_INDEX
   fi
   version=$(echo "$params"|awk -v p="$package" '{sub(p"-", "", $1)}{sub(".tar.gz", "", $1)}{print $1}')
   if [ "$output_detail" -eq 1 ];then
     printf "%15s %8s %8s %3s %10s %5s %5s\n" $(echo "$params"|awk -v p="$package" '{sub(p"-", "", $1)}{sub(".tar.gz", "", $1)}{print p " " $1 "    updated at: " $2 " " $3 " " $4}')
   fi
+} ## }}}
+
+function get_gnu_latest { ## {{{
+  get_index_latest "http://ftp.gnu.org/gnu/$package/?C=M;O=A" "$@"
 } ## }}}
 
 function get_github_latest { ## {{{
@@ -403,8 +410,12 @@ function get_github_latest { ## {{{
   if [ "$version" != "" ];then
     info="The latest release published on: $(echo "$json"|grep "\"published_at\":"|cut -d":" -f2|cut -d '"' -f2)"
   elif [ "$output_detail" -eq 1 ];then
-    version=$(curl -k https://api.github.com/repos/$user/$repository/tags 2>/dev/null|grep "\"name\":"|head -n1|cut -d":" -f2|cut -d '"' -f2|cut -d"/" -f3|sed 's/^v//')
-    info="The latest tag"
+    json=$(curl -k https://api.github.com/repos/$user/$repository/tags 2>/dev/null)
+    version=$(echo "$json"|grep "\"name\":"|head -n1|cut -d'"' -f4|sed 's/^v//')
+    local taginfo=$(echo "$json"|grep "\"url\":"|head -n1|cut -d'"' -f4)
+    json=$(curl -k "$taginfo" 2>/dev/null)
+    local t=$(echo "$json"|grep "\"date\":"|head -n1|cut -d'"' -f4)
+    info="The latest tag committed at $t"
   fi
   # In case of API limitation
   if [ "$version" = "" ];then
@@ -415,7 +426,7 @@ function get_github_latest { ## {{{
       info="The latest release published on: $(echo "$html"|grep -A1 "released this"|tail -n1|cut -d">" -f2|cut -d"<" -f1)"
     else
       version=$(echo "$html"|grep tag-name|head -n1|cut -d ">" -f2 |cut -d"<" -f1|sed 's/^v//')
-      info="The latest tag published on: $(echo "$html"|grep "relative-time"|head -n1|cut -d">" -f2|cut -d"<" -f1)"
+      info="The latest tag committed on: $(echo "$html"|grep "relative-time"|head -n1|cut -d">" -f2|cut -d"<" -f1)"
     fi
   fi
   if [ "$output_detail" -eq 1 ] && [ "$version" != "" ];then
