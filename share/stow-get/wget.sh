@@ -1,3 +1,3 @@
 inst_type=gnu
-bin_dep=(openssl)
+lib_dep=(ssl_package_openssl)
 configure_options="--with-ssl=openssl"

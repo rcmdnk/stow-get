@@ -380,7 +380,7 @@ function stow_install_wrapper { ## {{{
 function get_gnu_latest { ## {{{
   local output_detail="${1:-0}"
   local url="http://ftp.gnu.org/gnu/$package/?C=M;O=A"
-  local html="$(curl "$url" 2>/dev/null)"
+  local html="$(curl -k "$url" 2>/dev/null)"
   local latest="$(printf "$html"|grep "$package"|grep ".tar.gz<"|grep "$1"|grep -v "\-doc\-"|grep -v latest|tail -n1)"
   local params=$(echo "$latest"|sed 's/<[^>]*>/ /g')
   if [ "$params" = "" ];then
@@ -398,19 +398,18 @@ function get_github_latest { ## {{{
   repository=${repository:-${package}}
   local output_detail="${1:-0}"
   local info=""
-  local json=$(curl https://api.github.com/repos/$user/$repository/releases/latest 2>/dev/null)
+  local json=$(curl -k https://api.github.com/repos/$user/$repository/releases/latest 2>/dev/null)
   version=$(echo "$json"|grep "\"name\":"|cut -d":" -f2|cut -d '"' -f2|sed 's/^v//')
   if [ "$version" != "" ];then
     info="The latest release published on: $(echo "$json"|grep "\"published_at\":"|cut -d":" -f2|cut -d '"' -f2)"
   elif [ "$output_detail" -eq 1 ];then
-    curl https://api.github.com/repos/$user/$repository/tags 1>&2
-    version=$(curl https://api.github.com/repos/$user/$repository/tags 2>/dev/null|grep "\"name\":"|head -n1|cut -d":" -f2|cut -d '"' -f2|cut -d"/" -f3|sed 's/^v//')
+    version=$(curl -k https://api.github.com/repos/$user/$repository/tags 2>/dev/null|grep "\"name\":"|head -n1|cut -d":" -f2|cut -d '"' -f2|cut -d"/" -f3|sed 's/^v//')
     info="The latest tag"
   fi
   # In case of API limitation
   if [ "$version" = "" ];then
     local url="https://github.com/$user/$repository/releases"
-    local html="$(curl "$url" 2>/dev/null)"
+    local html="$(curl -k "$url" 2>/dev/null)"
     version=$(echo "$html"|grep css-truncate-target|cut -d ">" -f2 |cut -d"<" -f1|sed 's/^v//')
     if [ "$version" != "" ];then
       info="The latest release published on: $(echo "$html"|grep -A1 "released this"|tail -n1|cut -d">" -f2|cut -d"<" -f1)"
