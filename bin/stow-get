@@ -228,7 +228,8 @@ function source_pac_conf { ## {{{
     warn "No inst_type is given. Trying to $default_inst_type type installation."
     inst_type=$default_inst_type
   fi
-  set_target
+  get_version >/dev/null
+  target=${package}-STOW-${target_postfix:-${version}}
 
   local init_type=init_"$inst_type"
   if ! check_bin "$init_type" >/dev/null 2>&1;then
@@ -238,7 +239,7 @@ function source_pac_conf { ## {{{
   eval init_"$inst_type"
 } ## }}}
 
-function set_version { # {{{
+function get_version { # {{{
   if [ "$version" = "" ] || [ "$version" = "latest" ];then
     get_latest
     ret=$?
@@ -248,11 +249,7 @@ function set_version { # {{{
       exit $EXIT_NO_VERSION
     fi
   fi
-} # }}}
-
-function set_target { # {{{
-  set_version
-  target=${package}-STOW-${target_postfix:-${version}}
+  echo "$version"
 } # }}}
 
 function cleanup_package { # {{{
