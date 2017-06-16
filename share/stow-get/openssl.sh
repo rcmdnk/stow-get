@@ -1,5 +1,5 @@
 inst_type=github
-openssl_version=${openssl_version:-1_1}
+openssl_version=${openssl_version:-1_0}
 configure="./config"
 configure_opstions="--openssldir="$stow_dir/$target/ssl
 
@@ -13,4 +13,4 @@ function get_latest {
   fi
 }
 directory=openssl-OpenSSL_$(get_version)
-tarball=OpenSSL_$(get_version)
+tarball=OpenSSL_$(get_version).tar.gz
