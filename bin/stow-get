@@ -539,6 +539,33 @@ if [ "$#" -eq 0 ];then
   fi
 fi
 
+# Read configuration {{{
+if [ -f "$conf_file" ];then
+  source "$conf_file"
+fi
+if [ "$#" -ne 0 ];then
+  packages=("$@")
+fi
+# }}}
+
+# Check PATH/LD_LIBRARY_PATH {{{
+if ! echo "$PATH"| grep -q "$inst_dir/bin";then
+  #warn "PATH doesn't include $inst_dir/bin,
+#which may make a problem to search dependencies or to use stow command."
+  export PATH="$inst_dir/bin:$PATH"
+fi
+if ! echo "$LD_LIBRARY_PATH"| grep -q "$inst_dir/lib";then
+#  warn "LD_LIBRARY_PATH doesn't include $inst_dir/lib,
+#which may make a problem to search dependencies."
+  export LD_LIBRARY_PATH="$inst_dir/lib64:$inst_dir/lib:$LD_LIBRARY_PATH"
+fi
+if ! echo "$PYTHONPATH"| grep -q "$inst_dir/lib";then
+#  warn "LD_LIBRARY_PATH doesn't include $inst_dir/lib,
+#which may make a problem to search dependencies."
+  export PYTHONPATH="$inst_dir/lib:$PYTHONPATH"
+fi
+# }}}
+
 if [ "$command" = "latest" ];then
   packages=("$@")
   for package in "$@";do
@@ -546,15 +573,6 @@ if [ "$command" = "latest" ];then
     get_latest 1
   done
   exit
-fi
-# }}}
-
-# Read configuration {{{
-if [ -f "$conf_file" ];then
-  source "$conf_file"
-fi
-if [ "$#" -ne 0 ];then
-  packages=("$@")
 fi
 # }}}
 
@@ -601,24 +619,6 @@ fi
 if [ "$command" = "cleanup" ];then
   cleanup_package
   exit
-fi
-# }}}
-
-# Check PATH/LD_LIBRARY_PATH {{{
-if ! echo "$PATH"| grep -q "$inst_dir/bin";then
-#  warn "PATH doesn't include $inst_dir/bin,
-#which may make a problem to search dependencies or to use stow command."
-  export PATH="$inst_dir/bin:$PATH"
-fi
-if ! echo "$LD_LIBRARY_PATH"| grep -q "$inst_dir/lib";then
-#  warn "LD_LIBRARY_PATH doesn't include $inst_dir/lib,
-#which may make a problem to search dependencies."
-  export LD_LIBRARY_PATH="$inst_dir/lib64:$inst_dir/lib:$LD_LIBRARY_PATH"
-fi
-if ! echo "$PYTHONPATH"| grep -q "$inst_dir/lib";then
-#  warn "LD_LIBRARY_PATH doesn't include $inst_dir/lib,
-#which may make a problem to search dependencies."
-  export PYTHONPATH="$inst_dir/lib:$PYTHONPATH"
 fi
 # }}}
 
