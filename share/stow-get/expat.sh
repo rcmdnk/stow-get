@@ -14,4 +14,7 @@ function get_latest {
   fi
 }
 url_prefix=https://sourceforge.net/projects/expat/files/expat/$(get_version)
+if [ "$version" = "" ];then
+  exit $EXIT_NO_VERSION
+fi
 tarball=expat-$(get_version).tar.bz2

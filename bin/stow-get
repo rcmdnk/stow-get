@@ -538,6 +538,7 @@ if [ "$#" -eq 0 ];then
     packages=($(get_list))
   fi
 fi
+# }}}
 
 # Read configuration {{{
 if [ -f "$conf_file" ];then
@@ -566,6 +567,21 @@ if ! echo "$PYTHONPATH"| grep -q "$inst_dir/lib";then
 fi
 # }}}
 
+# curl check {{{
+curl_check=0
+function curl {
+  if [ $curl_check = 0 ];then
+    if ! command curl -V |grep -q https;then
+      warn "curl does not support https. It may be a problem to get the latest version of packages." 1>&2
+    fi
+    curl_check=1
+  fi
+  command curl "$@"
+}
+# }}}
+
+
+# Latest {{{
 if [ "$command" = "latest" ];then
   packages=("$@")
   for package in "$@";do
@@ -614,6 +630,7 @@ if [ "$command" = "packages" ];then
   done
   exit
 fi
+# }}}
 
 # Clean up {{{
 if [ "$command" = "cleanup" ];then
