@@ -9,7 +9,7 @@ function make_cmd {
 }
 function get_latest {
   local output_detail="${1:-0}"
-  local params="$(curl https://www.mercurial-scm.org/wiki/ 2>/dev/null|grep released|cut -d "(" -f1)"
+  local params="$(curl -k https://www.mercurial-scm.org/wiki/ 2>/dev/null|grep released|cut -d "(" -f1)"
   version="$(echo "$params"|cut -d " " -f 7)"
   if [ "$output_detail" -eq 1 ];then
     local d="released on $(echo "$params"|cut -d ">" -f6|cut -d " " -f1)"

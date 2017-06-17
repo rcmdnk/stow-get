@@ -1,7 +1,7 @@
 inst_type=tarball
 function get_latest {
   local output_detail="${1:-0}"
-  local params="$(curl https://libexpat.github.io/ 2>/dev/null|grep -v Changelog|grep "Changes" -B1|head -n2)"
+  local params="$(curl -k https://libexpat.github.io/ 2>/dev/null|grep -v Changelog|grep "Changes" -B1|head -n2)"
   version="$(echo "$params"|tail -n1|cut -d ">" -f 2|cut -d "<" -f 1|cut -d " "  -f 2)"
   if [ "$output_detail" -eq 1 ];then
     local d="$(echo "$params"|cut -d "," -f 2)"

@@ -232,7 +232,7 @@ function source_pac_conf { ## {{{
   target=${package}-STOW-${target_postfix:-${version}}
 
   local init_type=init_"$inst_type"
-  if ! check_bin "$init_type" >/dev/null 2>&1;then
+  if ! check_bin "$init_type";then
     err "Invalid inst_type: $inst_type for $package"
     return $EXIT_INVALID_INST_TYPE
   fi
@@ -277,6 +277,7 @@ function check_lib { # {{{
   for d in "${pathes[@]}";do
     files=$(get_file_list "$d" "${1}"* 2>/dev/null)
     if [ "$files" != "" ];then
+      echo "$d"
       return 0
     fi
   done
@@ -685,7 +686,7 @@ while [ "$i" -lt "${#packages[@]}" ];do
       err "Configuration file for ${lib_dep[j]} has wrong lib_dep definition."
       exit $EXIT_WRONG_LIB_DEP
     fi
-    if ! check_lib "$l";then
+    if ! check_lib "$l" >/dev/null;then
       if ! echo " ${pre_packages[*]} "|grep -q " $p ";then
         if echo " ${packages[*]} "|grep -q " $p ";then
           packages=($(echo " ${packages[*]} "|sed "s/ $p / /"))
