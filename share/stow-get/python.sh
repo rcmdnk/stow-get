@@ -9,6 +9,10 @@ function get_latest {
     local t=$(echo "$params"|cut -d '"' -f 4)
   fi
   version="$(echo "$t"|awk '{split($1, tmp, "Python-")}{gsub(".tar.xz", "", tmp[2])}{print tmp[2]}')"
+  if [ -z "$version" ];then
+    err "Failed to get the latest version for $package."
+    return $EXIT_NO_VERSION
+  fi
   if [ "$output_detail" -eq 1 ];then
     printf "%15s %8s\n" "$package" "$version"
   fi

@@ -250,7 +250,7 @@ Use safe version $version_safe" 1>&2
         version="$version_safe"
       else
         err "version(=$version) is not recognized for $package."
-        err "Set version or get_latest function."
+        err "Set version or get_latest function for $package."
         exit $EXIT_NO_VERSION
       fi
     fi

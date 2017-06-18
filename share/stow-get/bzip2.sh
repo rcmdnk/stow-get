@@ -12,6 +12,10 @@ function get_latest {
   local output_detail="${1:-0}"
   local params="$(curl http://www.bzip.org 2>/dev/null|grep "current version is")"
   version="$(echo "$params"|cut -d ">" -f 3|cut -d "<" -f1)"
+  if [ -z "$version" ];then
+    err "Failed to get the latest version for $package."
+    return $EXIT_NO_VERSION
+  fi
   if [ "$output_detail" -eq 1 ];then
     local d="$(echo "$params"|cut -d "," -f 2)"
     printf "%15s %8s %10s\n" "$package" "$version"  "$d"
