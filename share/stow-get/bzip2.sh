@@ -17,4 +17,5 @@ function get_latest {
     printf "%15s %8s %10s\n" "$package" "$version"  "$d"
   fi
 }
-url_prefix=http://www.bzip.org/$(get_version)
+get_version
+url_prefix=http://www.bzip.org/$version

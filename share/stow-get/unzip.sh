@@ -17,7 +17,5 @@ function get_latest {
     printf "%15s %8s %10s\n" "$package" "$version"  "$d"
   fi
 }
-if [ -z "$version" ];then
-  get_version >/dev/null
-fi
+get_version
 directory=${package}${version/./}

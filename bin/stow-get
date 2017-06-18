@@ -106,8 +106,8 @@ function reset_inst_val {
       err "get_latest is undefined for $inst_type"
     fi
     if [ "$version" = "" ];then
-      err "Failed to get version for $package."
-      exit $EXIT_NO_VERSION
+      warn "Failed to get version for $package."
+      return $EXIT_NO_VERSION
     fi
   }
 }
@@ -228,7 +228,7 @@ function source_pac_conf { ## {{{
     warn "No inst_type is given. Trying to $default_inst_type type installation."
     inst_type=$default_inst_type
   fi
-  get_version >/dev/null
+  get_version
   target=${package}-STOW-${target_postfix:-${version}}
 
   local init_type=init_"$inst_type"
@@ -244,12 +244,17 @@ function get_version { # {{{
     get_latest
     ret=$?
     if [ $ret -ne 0 ];then
-      err "version(=$version) is not recognized for $package."
-      err "Set version or get_latest function."
-      exit $EXIT_NO_VERSION
+      if [ -n "$version_safe" ];then
+        warn "Failed to get version for $package.
+Use safe version $version_safe" 1>&2
+        version="$version_safe"
+      else
+        err "version(=$version) is not recognized for $package."
+        err "Set version or get_latest function."
+        exit $EXIT_NO_VERSION
+      fi
     fi
   fi
-  echo "$version"
 } # }}}
 
 function cleanup_package { # {{{
@@ -386,7 +391,7 @@ function get_index_latest { ## {{{
   local params=$(echo "$latest"|sed 's/<[^>]*>/ /g')
   if [ "$params" = "" ];then
     err "Failed to get the latest version of $package from $url"
-    exit $EXIT_NOT_INDEX
+    return $EXIT_NOT_INDEX
   fi
   version=$(echo "$params"|awk -v p="$package" '{sub(p"-", "", $1)}{sub(".tar.gz", "", $1)}{print $1}')
   if [ "$output_detail" -eq 1 ];then
@@ -567,20 +572,6 @@ if ! echo "$PYTHONPATH"| grep -q "$inst_dir/lib";then
 fi
 # }}}
 
-# curl check {{{
-curl_check=0
-function curl {
-  if [ $curl_check = 0 ];then
-    if ! command curl -V |grep -q https;then
-      warn "curl does not support https. It may be a problem to get the latest version of packages." 1>&2
-    fi
-    curl_check=1
-  fi
-  command curl "$@"
-}
-# }}}
-
-
 # Latest {{{
 if [ "$command" = "latest" ];then
   packages=("$@")
@@ -640,7 +631,7 @@ fi
 # }}}
 
 # Check necessary packages {{{
-necessary_packages=(unzip wget stow)
+necessary_packages=(curl unzip wget stow)
 for p in "${necessary_packages[@]}";do
   if ! type -a "$p" >/dev/null 2>&1;then
     packages=($p "${packages[@]}")

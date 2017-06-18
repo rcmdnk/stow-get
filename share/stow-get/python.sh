@@ -13,6 +13,7 @@ function get_latest {
     printf "%15s %8s\n" "$package" "$version"
   fi
 }
-url_prefix=https://www.python.org/ftp/python/$(get_version)/
-tarball=Python-$(get_version).tar.xz
-directory=Python-$(get_version)
+get_version
+url_prefix=https://www.python.org/ftp/python/${version}/
+tarball=Python-${version}.tar.xz
+directory=Python-${version}

@@ -1,11 +1,12 @@
 inst_type=tarball
+version_safe=2.2.1
 function get_latest {
   local output_detail="${1:-0}"
   local params="$(curl -k https://libexpat.github.io/ 2>/dev/null|grep -v Changelog|grep "Changes" -B1|head -n2)"
   version="$(echo "$params"|tail -n1|cut -d "/" -f 7|sed 's/^R_//'|sed 's/_/./g')"
   if [ "$version" = "" ];then
     err "Failed to get version for $package."
-    exit $EXIT_NO_VERSION
+    return $EXIT_NO_VERSION
   fi
   if [ "$output_detail" -eq 1 ];then
     local d="$(echo "$params"|cut -d "," -f 2)"
@@ -13,8 +14,6 @@ function get_latest {
     printf "%15s %8s %10s\n" "$package" "$version"  "$d"
   fi
 }
-url_prefix=https://sourceforge.net/projects/expat/files/expat/$(get_version)
-if [ "$version" = "" ];then
-  exit $EXIT_NO_VERSION
-fi
-tarball=expat-$(get_version).tar.bz2
+get_version
+url_prefix=https://sourceforge.net/projects/expat/files/expat/$version
+tarball=expat-${version}.tar.bz2
