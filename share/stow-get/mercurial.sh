@@ -1,9 +1,9 @@
 inst_type=tarball
+version_safe=4.2.1
 url_prefix=https://www.mercurial-scm.org/release/
 configure=""
 function make_cmd {
   which python
-  echo $LD_LIBRARY_PATH
   make build
   python setup.py install --prefix="$stow_dir/$target" --force
 }

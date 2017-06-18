@@ -106,7 +106,7 @@ function reset_inst_val {
       err "get_latest is undefined for $inst_type"
     fi
     if [ "$version" = "" ];then
-      warn "Failed to get version for $package."
+      warn "Failed to get the latest version for $package."
       return $EXIT_NO_VERSION
     fi
   }

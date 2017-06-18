@@ -9,6 +9,10 @@ function get_latest {
   local url="https://github.com/openssl/openssl/releases"
   local html="$(curl -k "$url" 2>/dev/null)"
   version=$(echo "$html"|grep tag-name|grep "OpenSSL_${openssl_version}"|head -n1|cut -d ">" -f2 |cut -d"<" -f1|sed 's/OpenSSL_//')
+  if [ -z "$version" ];then
+    err "Failed to get the latest version for $package."
+    return $EXIT_NO_VERSION
+  fi
   if [ "$output_detail" -eq 1 ];then
     printf "%15s %8s\n" "$package" "$version"
   fi

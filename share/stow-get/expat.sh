@@ -4,8 +4,8 @@ function get_latest {
   local output_detail="${1:-0}"
   local params="$(curl -k https://libexpat.github.io/ 2>/dev/null|grep -v Changelog|grep "Changes" -B1|head -n2)"
   version="$(echo "$params"|tail -n1|cut -d "/" -f 7|sed 's/^R_//'|sed 's/_/./g')"
-  if [ "$version" = "" ];then
-    err "Failed to get version for $package."
+  if [ -z "$version" ];then
+    err "Failed to get the latest version for $package."
     return $EXIT_NO_VERSION
   fi
   if [ "$output_detail" -eq 1 ];then
