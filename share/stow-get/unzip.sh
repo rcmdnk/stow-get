@@ -1,6 +1,5 @@
 inst_type=tarball
 url_prefix=ftp://ftp.info-zip.org/pub/infozip/src
-tarball=${directory}.tgz
 configure=""
 function make_cmd {
   cp ./unix/Makefile .
@@ -23,3 +22,4 @@ function get_latest {
 }
 get_version
 directory=${package}${version/./}
+tarball=${directory}.tgz
