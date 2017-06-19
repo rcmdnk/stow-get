@@ -1,6 +1,7 @@
 inst_type=github
-version_safe=1_0_2l
-openssl_version=${openssl_version:-1_0}
+#version_safe=1_0_2l
+version_safe=1_1_0f
+openssl_version=${openssl_version:-1_1}
 configure="./config"
 configure_opstions="--openssldir="$stow_dir/$target/ssl
 

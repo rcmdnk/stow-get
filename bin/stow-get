@@ -337,10 +337,7 @@ function init_tarball { ## {{{
       fi
 
       if [ "$configure" != "" ];then
-        CFLAGS="-L$inst_dir/lib -I$inst_dir/include" \
-          CPPFLAGS="-L$inst_dir/lib -I$inst_dir/include" \
-          LDFLAGS="-L$inst_dir/lib" \
-          "$configure" --prefix="$stow_dir/$target" "$configure_options"
+        $configure --prefix="$stow_dir/$target" $configure_options
         ret=$?
         if [ $ret -ne 0 ];then
           return $ret
