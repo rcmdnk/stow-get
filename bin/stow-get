@@ -530,24 +530,23 @@ while getopts c:d:i:t:fDVvh OPT;do
 done
 shift $((OPTIND - 1))
 
-if [ "$#" -eq 0 ];then
-  if echo " ${NEED_ARGS[*]} "|grep -q " $command ";then
-    err "Need <package> argument for $command command."
-    exit $EXIT_NO_PACKAEGE
-  fi
-
-  if [ "$command" = "upgrade" ];then
-    packages=($(get_list))
-  fi
-fi
-# }}}
-
 # Read configuration {{{
 if [ -f "$conf_file" ];then
   source "$conf_file"
 fi
+# }}}
+
+# Set packages {{{
 if [ "$#" -ne 0 ];then
   packages=("$@")
+else
+  if echo " ${NEED_ARGS[*]} "|grep -q " $command ";then
+    err "Need <package> argument for $command command."
+    exit $EXIT_NO_PACKAEGE
+  fi
+  if [ "$command" = "upgrade" ];then
+    packages=($(get_list))
+  fi
 fi
 # }}}
 
