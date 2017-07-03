@@ -421,7 +421,7 @@ function get_github_latest { ## {{{
   if [ "$version" = "" ];then
     local url="https://github.com/$user/$repository/releases"
     local html="$(curl -k "$url" 2>/dev/null)"
-    version=$(echo "$html"|grep css-truncate-target|cut -d ">" -f2 |cut -d"<" -f1|sed 's/^v//')
+    version=$(echo "$html"|grep css-truncate-target|head -n1|cut -d ">" -f2 |cut -d"<" -f1|sed 's/^v//')
     if [ "$version" != "" ];then
       info="The latest release published on: $(echo "$html"|grep -A1 "released this"|tail -n1|cut -d">" -f2|cut -d"<" -f1)"
     else
@@ -430,7 +430,7 @@ function get_github_latest { ## {{{
     fi
   fi
   if [ "$output_detail" -eq 1 ] && [ "$version" != "" ];then
-    printf "%15s %8s %s\n" "$package" "$version" "$info"
+    printf "%15s %8s  %s\n" "$package" "$version" "$info"
   fi
 } ## }}}
 
