@@ -175,31 +175,34 @@ See more examples in [stow-get/share/stow-get](https://github.com/rcmdnk/stow-ge
 ## Help
 
     Usage: stow-get <sub command> [-fDVvh] [-c <conf file>] [-d <conf dir>] [-i <inst dir> ] [-t <inst type>] [package [package [...]]]
-
+    
     Sub commands:
        install [package [package...]]
                       Install packages (all packages in the configuration file if no package is given).
        uninstall <package>
                       Remove package.
        rm/remove      Aliases of uninstall.
+       upgrade/update [package [package...]]
+                      Upgrade packages (all packages in the list if no package is given).
        list           List up installed packages.
        packages       List up available packages which have configuration files.
+       clean/cleanup        Clean up old packages
        info <package> Show configuration file of package.
        latest <package>
                       Show the latest version of package.
        version        Show version.
        help           Show this help.
-
+    
     Arguments:
-       -c <conf file> Configuration file (default: /Users/USER/.stow-get).
-       -d <conf dir>  Additional directory of package configuration files (default: /Users/USER/tmp/stow-get/bin/../share/stow-get).
+       -c <conf file> Configuration file (default: $HOME/.stow-get).
+       -d <conf dir>  Additional directory of package configuration files (default: $HOME/tmp/stow-get/bin/../share/stow-get).
                       Multi directories can be specified by separating with ",".
-       -i <inst dir>  Directory to install packages (default: /Users/USER/usr/local).
+       -i <inst dir>  Directory to install packages (default: $HOME/usr/local).
        -t <inst type> Set install type (default: gnu).
        -f             Force to re-install.
        -D             Dry run mode.
        -V             Verbose mode.
        -v             Show version.
        -h             Show this help.
-
+    
     See more details at: https://github.com/rcmdnk/stow-get

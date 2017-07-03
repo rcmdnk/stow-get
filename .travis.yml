@@ -35,3 +35,4 @@ script:
   - ./bin/stow-get cleanup
   - ls "$INST_DIR/stow"
   - ls "$INST_DIR/stow/current"
+

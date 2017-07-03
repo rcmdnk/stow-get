@@ -4,8 +4,8 @@
 #
 # Package manager with stow.
 #
-STOW_GET_VERSION=v0.0.10
-STOW_GET_DATE="20/Jun/2017"
+STOW_GET_VERSION=v0.0.11
+STOW_GET_DATE="3/Jul/2017"
 #
 # }}}
 
@@ -128,11 +128,11 @@ Sub commands:
    uninstall <package>
                   Remove package.
    rm/remove      Aliases of uninstall.
-   upgrade [package [package...]]
+   upgrade/update [package [package...]]
                   Upgrade packages (all packages in the list if no package is given).
    list           List up installed packages.
    packages       List up available packages which have configuration files.
-   cleanup        Clean up old packages
+   clean/cleanup        Clean up old packages
    info <package> Show configuration file of package.
    latest <package>
                   Show the latest version of package.
@@ -406,7 +406,7 @@ function get_github_latest { ## {{{
   local output_detail="${1:-0}"
   local info=""
   local json=$(curl -k https://api.github.com/repos/$user/$repository/releases/latest 2>/dev/null)
-  version=$(echo "$json"|grep "\"name\":"|cut -d":" -f2|cut -d '"' -f2|sed 's/^v//')
+  version=$(echo "$json"|grep "\"tag_name\":"|cut -d":" -f2|cut -d '"' -f2|sed 's/^v//')
   if [ "$version" != "" ];then
     info="The latest release published on: $(echo "$json"|grep "\"published_at\":"|cut -d":" -f2|cut -d '"' -f2)"
   elif [ "$output_detail" -eq 1 ];then
@@ -421,7 +421,7 @@ function get_github_latest { ## {{{
   if [ "$version" = "" ];then
     local url="https://github.com/$user/$repository/releases"
     local html="$(curl -k "$url" 2>/dev/null)"
-    version=$(echo "$html"|grep css-truncate-target|cut -d ">" -f2 |cut -d"<" -f1|sed 's/^v//')
+    version=$(echo "$html"|grep css-truncate-target|head -n1|cut -d ">" -f2 |cut -d"<" -f1|sed 's/^v//')
     if [ "$version" != "" ];then
       info="The latest release published on: $(echo "$html"|grep -A1 "released this"|tail -n1|cut -d">" -f2|cut -d"<" -f1)"
     else
@@ -430,7 +430,7 @@ function get_github_latest { ## {{{
     fi
   fi
   if [ "$output_detail" -eq 1 ] && [ "$version" != "" ];then
-    printf "%15s %8s %s\n" "$package" "$version" "$info"
+    printf "%15s %8s  %s\n" "$package" "$version" "$info"
   fi
 } ## }}}
 
@@ -494,7 +494,7 @@ function get_list { ## {{{
 
 # Check argumetns {{{
 
-COMMANDS=(install rm remove uninstall upgrade list packages cleanup info latest version help)
+COMMANDS=(install rm remove uninstall update upgrade list packages clean cleanup info latest version help)
 NEED_ARGS=(uninstall info latest)
 
 if [ "$#" -eq 0 ] || [ "$1" = "help" ] || [ "$1" = "-h" ];then
@@ -544,7 +544,7 @@ else
     err "Need <package> argument for $command command."
     exit $EXIT_NO_PACKAEGE
   fi
-  if [ "$command" = "upgrade" ];then
+  if [ "$command" = "upgrade" ] || [ "$command" = "update" ];then
     packages=($(get_list))
   fi
 fi
@@ -620,7 +620,7 @@ fi
 # }}}
 
 # Clean up {{{
-if [ "$command" = "cleanup" ];then
+if [ "$command" = "cleanup" ] || [ "$command" = "clean" ];then
   cleanup_package
   exit
 fi
