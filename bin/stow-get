@@ -409,20 +409,22 @@ function get_github_latest { ## {{{
   local info=""
   local json=$(curl -k https://api.github.com/repos/$user/$repository/releases/latest 2>/dev/null)
   version=$(echo "$json"|grep "\"tag_name\":"|cut -d":" -f2|cut -d '"' -f2|sed 's/^v//')
-  if [ "$version" != "" ];then
+  if [ -n "$version" ];then
     info="The latest release published on: $(echo "$json"|grep "\"published_at\":"|cut -d":" -f2|cut -d '"' -f2)"
     local tarballtmp=$(echo "$json"|grep '"browser_download_url":'|grep '.tar.gz"'|head -n1|cut -d '"' -f4)
     if [ -n "$tarballtmp" ];then
       tarball=$(echo "$tarballtmp"|awk '{n=split($0, tmp, "/")}{print tmp[n]}')
       url_prefix=$(echo "$tarballtmp"|sed "s|/$tarball||")
     fi
-  elif [ "$output_detail" -eq 1 ];then
+  else
     json=$(curl -k https://api.github.com/repos/$user/$repository/tags 2>/dev/null)
     version=$(echo "$json"|grep "\"name\":"|head -n1|cut -d'"' -f4|sed 's/^v//')
-    local taginfo=$(echo "$json"|grep "\"url\":"|head -n1|cut -d'"' -f4)
-    json=$(curl -k "$taginfo" 2>/dev/null)
-    local t=$(echo "$json"|grep "\"date\":"|head -n1|cut -d'"' -f4)
-    info="The latest tag committed at $t"
+    if [ "$output_detail" -eq 1 ];then
+      local taginfo=$(echo "$json"|grep "\"url\":"|head -n1|cut -d'"' -f4)
+      json=$(curl -k "$taginfo" 2>/dev/null)
+      local t=$(echo "$json"|grep "\"date\":"|head -n1|cut -d'"' -f4)
+      info="The latest tag committed at $t"
+    fi
   fi
   # In case of API limitation
   if [ "$version" = "" ];then
