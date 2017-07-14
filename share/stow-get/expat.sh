@@ -1,4 +1,6 @@
 inst_type=tarball
+# temporarily, 2.2.2 can't be compiled at old linux?
+version=2.2.1
 version_safe=2.2.1
 function get_latest {
   local output_detail="${1:-0}"
