@@ -448,6 +448,9 @@ function get_github_latest { ## {{{
       fi
     fi
   fi
+  if [ -n "$url_prefix" ] && ! echo "$url_prefix"|grep -q http;then
+    url_prefix="https://github.com/$url_prefix"
+  fi
   if [ "$output_detail" -eq 1 ] && [ "$version" != "" ];then
     printf "%15s %8s  %s\n" "$package" "$version" "$info"
   fi
