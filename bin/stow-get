@@ -409,6 +409,11 @@ function get_github_latest { ## {{{
   version=$(echo "$json"|grep "\"tag_name\":"|cut -d":" -f2|cut -d '"' -f2|sed 's/^v//')
   if [ "$version" != "" ];then
     info="The latest release published on: $(echo "$json"|grep "\"published_at\":"|cut -d":" -f2|cut -d '"' -f2)"
+    local tarballtmp=$(echo "$json"|grep '"browser_download_url":'|grep '.tar.gz"'|head -n1|cut -d '"' -f4)
+    if [ -n "$tarballtmp" ];then
+      tarball=$(echo "$tarballtmp"|awk '{n=split($0, tmp, "/")}{print tmp[n]}')
+      url_prefix=$(echo "$tarballtmp"|sed "s|/$tarball||")
+    fi
   elif [ "$output_detail" -eq 1 ];then
     json=$(curl -k https://api.github.com/repos/$user/$repository/tags 2>/dev/null)
     version=$(echo "$json"|grep "\"name\":"|head -n1|cut -d'"' -f4|sed 's/^v//')
@@ -424,9 +429,19 @@ function get_github_latest { ## {{{
     version=$(echo "$html"|grep css-truncate-target|head -n1|cut -d ">" -f2 |cut -d"<" -f1|sed 's/^v//')
     if [ "$version" != "" ];then
       info="The latest release published on: $(echo "$html"|grep -A1 "released this"|tail -n1|cut -d">" -f2|cut -d"<" -f1)"
+      local tarballtmp=$(echo "$html"|grep "releases/download"|grep "tar.gz"|head -n1|cut -d'"' -f2)
+      if [ -n "$tarballtmp" ];then
+        tarball=$(echo "$tarballtmp"|awk '{n=split($0, tmp, "/")}{print tmp[n]}')
+        url_prefix=$(echo "$tarballtmp"|sed "s|/$tarball||")
+      fi
     else
       version=$(echo "$html"|grep tag-name|head -n1|cut -d ">" -f2 |cut -d"<" -f1|sed 's/^v//')
       info="The latest tag committed on: $(echo "$html"|grep "relative-time"|head -n1|cut -d">" -f2|cut -d"<" -f1)"
+      local tarballtmp=$(echo "$html"|grep "archive"|grep "tar.gz"|head -n1|cut -d'"' -f2)
+      if [ -n "$tarballtmp" ];then
+        tarball=$(echo "$tarballtmp"|awk '{n=split($0, tmp, "/")}{print tmp[n]}')
+        url_prefix=$(echo "$tarballtmp"|sed "s|/$tarball||")
+      fi
     fi
   fi
   if [ "$output_detail" -eq 1 ] && [ "$version" != "" ];then
