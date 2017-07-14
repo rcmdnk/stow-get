@@ -339,7 +339,7 @@ function init_tarball { ## {{{
       fi
 
       if [ "$configure" != "" ];then
-        $configure --prefix="$stow_dir/$target" $configure_options
+        eval $configure --prefix="$stow_dir/$target" $configure_options
         ret=$?
         if [ $ret -ne 0 ];then
           return $ret
