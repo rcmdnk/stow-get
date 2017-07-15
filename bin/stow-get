@@ -573,7 +573,7 @@ else
 fi
 # }}}
 
-# Check PATH/LD_LIBRARY_PATH {{{
+# Check PATH {{{
 if ! echo "$PATH"| grep -q "$inst_dir/bin";then
   #warn "PATH doesn't include $inst_dir/bin,
 #which may make a problem to search dependencies or to use stow command."
@@ -588,6 +588,11 @@ if ! echo "$PYTHONPATH"| grep -q "$inst_dir/lib";then
 #  warn "LD_LIBRARY_PATH doesn't include $inst_dir/lib,
 #which may make a problem to search dependencies."
   export PYTHONPATH="$inst_dir/lib:$PYTHONPATH"
+fi
+if ! echo "$PKG_CONFIG_PATH"| grep -q "$inst_dir/lib/pkgconfig";then
+#  warn "PKG_CONFIG_PATH doesn't include $inst_dir/lib/pkgconfig,
+#which may make a problem to search dependencies."
+  export PKG_CONFIG_PATH="$inst_dir/lib/pkgconfig:$PKG_CONFIG_PATH"
 fi
 # }}}
 
