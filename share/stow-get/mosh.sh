@@ -1,6 +1,7 @@
 inst_type=github
 user=mobile-shell
 bin_dep=(automake autoconf)
+lib_dep=(protobuf)
 function before_configure {
   ./autogen.sh
 }
