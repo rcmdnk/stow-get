@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-## Description {{{
+# Description {{{
 #
 # Package manager with stow.
 #
@@ -9,27 +9,30 @@ STOW_GET_DATE="3/Jul/2017"
 #
 # }}}
 
-# The MIT License (MIT) {{{
-#
-# Copyright (c) 2017 rcmdnk
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to
-# deal in the Software without restriction, including without limitation the
-# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-# sell copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+## License {{{
+LICENSE='
+The MIT License (MIT)
+
+Copyright (c) 2017 rcmdnk
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to
+deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+sell copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+'
 # }}}
 
 # Fixed values {{{
@@ -66,6 +69,45 @@ function set_default {
   verbose=0
 }
 set_default
+# }}}
+
+# HELP {{{
+HELP="
+Usage: stow-get <sub command> [-fDVvh] [-c <conf file>] [-d <conf dir>] [-i <inst dir> ] [-t <inst type>] [package [package [...]]]
+
+Sub commands:
+   install [package [package...]]
+                  Install packages (all packages in the configuration file if no package is given).
+   uninstall <package>
+                  Remove package.
+   rm/remove      Aliases of uninstall.
+   upgrade/update [package [package...]]
+                  Upgrade packages (all packages in the list if no package is given).
+   list           List up installed packages.
+   packages       List up available packages which have configuration files.
+   clean/cleanup        Clean up old packages
+   info <package> Show configuration file of package.
+   latest <package>
+                  Show the latest version of package.
+   version        Show version.
+   license        Show license.
+   help           Show this help.
+
+Arguments:
+   -c <conf file> Configuration file (default: $conf_file).
+   -d <conf dir>  Additional directory of package configuration files (default: ${conf_dir[*]}).
+                  Multi directories can be specified by separating with \",\".
+   -i <inst dir>  Directory to install packages (default: $inst_dir).
+   -t <inst type> Set install type (default: $default_inst_type).
+   -f             Force to re-install.
+   -D             Dry run mode.
+   -V             Verbose mode.
+   -v             Show version.
+   -l             Show license.
+   -h             Show this help.
+
+See more details at: https://github.com/rcmdnk/stow-get
+"
 # }}}
 
 # Global variables for installation {{{
@@ -116,48 +158,6 @@ reset_inst_val
 # }}}
 
 # functions {{{
-
-function show_help { # {{{
-  ret="$1"
-  set_default
-  echo "
-Usage: stow-get <sub command> [-fDVvh] [-c <conf file>] [-d <conf dir>] [-i <inst dir> ] [-t <inst type>] [package [package [...]]]
-
-Sub commands:
-   install [package [package...]]
-                  Install packages (all packages in the configuration file if no package is given).
-   uninstall <package>
-                  Remove package.
-   rm/remove      Aliases of uninstall.
-   upgrade/update [package [package...]]
-                  Upgrade packages (all packages in the list if no package is given).
-   list           List up installed packages.
-   packages       List up available packages which have configuration files.
-   clean/cleanup        Clean up old packages
-   info <package> Show configuration file of package.
-   latest <package>
-                  Show the latest version of package.
-   version        Show version.
-   help           Show this help.
-
-Arguments:
-   -c <conf file> Configuration file (default: $conf_file).
-   -d <conf dir>  Additional directory of package configuration files (default: ${conf_dir[*]}).
-                  Multi directories can be specified by separating with \",\".
-   -i <inst dir>  Directory to install packages (default: $inst_dir).
-   -t <inst type> Set install type (default: $default_inst_type).
-   -f             Force to re-install.
-   -D             Dry run mode.
-   -V             Verbose mode.
-   -v             Show version.
-   -h             Show this help.
-
-See more details at: https://github.com/rcmdnk/stow-get
-"
-  if [ "$ret" != "" ];then
-    exit "$ret"
-  fi
-} ## }}}
 
 function show_version { ## {{{
   echo "$(basename "$0") $STOW_GET_VERSION $STOW_GET_DATE"
@@ -516,13 +516,17 @@ function get_list { ## {{{
 
 # Check argumetns {{{
 
-COMMANDS=(install rm remove uninstall update upgrade list packages clean cleanup info latest version help)
+COMMANDS=(install rm remove uninstall update upgrade list packages clean cleanup info latest version license help)
 NEED_ARGS=(uninstall info latest)
 
 if [ "$#" -eq 0 ] || [ "$1" = "help" ] || [ "$1" = "-h" ];then
-  show_help 0
+  echo "$HELP"
+  exit
 elif [ "$1" = "version" ] || [ "$1" = "-v" ];then
   show_version
+  exit 0
+elif [ "$1" = "license" ] || [ "$1" = "-l" ];then
+  echo "$LICENSE"
   exit 0
 fi
 
@@ -536,7 +540,7 @@ if [ "$command" = "rm" ] || [ "$command" = "remove" ];then
   command="uninstall"
 fi
 
-while getopts c:d:i:t:CfDVvh OPT;do
+while getopts c:d:i:t:CfDVvlh OPT;do
   case $OPT in
     "c" ) conf_file="$OPTARG" ;;
     "d" ) conf_dir=(${OPTARG/,/ } "${conf_dir[@]}");;
@@ -547,7 +551,8 @@ while getopts c:d:i:t:CfDVvh OPT;do
     "D" ) dryrun=1 ;;
     "V" ) verbose=1 ;;
     "v" ) show_version; exit 0;;
-    "h" ) show_help 0;;
+    "l" ) echo "$LICENSE"; exit 0;;
+    "h" ) echo "$HELP"; exit 0;;
     * ) echo "Check \"$(basename "$0") -h\" for more information" >/dev/tty;exit $EXIT_WRONG_ARG;;
   esac
 done
