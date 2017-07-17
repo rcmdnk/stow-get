@@ -598,7 +598,7 @@ if ! echo "$PKG_CONFIG_PATH"| grep -q "$inst_dir/lib/pkgconfig";then
 #  warn "PKG_CONFIG_PATH doesn't include $inst_dir/lib/pkgconfig,
 #which may make a problem to search dependencies."
   if [ -z "$PKG_CONFIG_PATH" ];then
-    export PKG_CONFIG_PATH="$inst_dir/lib/pkgconfig:$(echo $LD_LIBRARY_PATH|sed 's/lib:/lib/pkgconfig:/g'|sed 's/lib64:/lib64/pkgconfig:/g'|sed 's/lib$/lib/pkgconfig/'|sed 's/lib64$/lib64/pkgconfig/g')"
+    export PKG_CONFIG_PATH="$inst_dir/lib/pkgconfig:$(echo $LD_LIBRARY_PATH|sed 's|lib:|lib/pkgconfig:|g'|sed 's|lib64:|lib64/pkgconfig:|g'|sed 's|lib$|lib/pkgconfig|'|sed 's|lib64$|lib64/pkgconfig|g')"
   else
     export PKG_CONFIG_PATH="$inst_dir/lib/pkgconfig:$PKG_CONFIG_PATH"
   fi
