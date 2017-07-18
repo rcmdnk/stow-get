@@ -1,5 +1,4 @@
 inst_type=tarball
-configure=""
 function make_cmd {
   if [[ "$OSTYPE" =~ darwin ]];then
     make

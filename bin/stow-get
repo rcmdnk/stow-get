@@ -340,7 +340,7 @@ function init_tarball { ## {{{
         return $ret
       fi
 
-      if [ "$configure" != "" ];then
+      if [ "$configure" != "" ] && [ -f "$configure" ];then
         eval $configure --prefix="$stow_dir/$target" $configure_options
         ret=$?
         if [ $ret -ne 0 ];then
@@ -758,6 +758,8 @@ trap 'rm -rf "$TMP_DIR"' EXIT HUP INT QUIT ABRT SEGV TERM
 for package in "${packages[@]}";do
   source_pac_conf
 
+  banner "Installing $stow_dir/$target"
+
   if [ "$package" = "stow" ];then
     export PATH=$stow_dir/$target/bin:$PATH
   fi
@@ -787,8 +789,6 @@ for package in "${packages[@]}";do
       target=$target_tmp
     fi
   fi
-
-  banner "Installing $stow_dir/$target"
 
   if [ $dryrun -eq 1 ];then
     continue

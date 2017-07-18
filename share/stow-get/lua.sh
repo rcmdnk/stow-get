@@ -1,6 +1,5 @@
 inst_type=tarball
 url_prefix=http://www.lua.org/ftp/
-configure=""
 plathome=linux
 if [[ "$OSTYPE" =~ darwin ]];then
   plathome=macosx

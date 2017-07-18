@@ -1,7 +1,6 @@
 inst_type=tarball
 version_safe=4.2.1
 url_prefix=https://www.mercurial-scm.org/release/
-configure=""
 function make_cmd {
   which python
   make build

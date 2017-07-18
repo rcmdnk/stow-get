@@ -1,6 +1,5 @@
 inst_type=tarball
 url_prefix=ftp://ftp.info-zip.org/pub/infozip/src
-configure=""
 function make_cmd {
   cp ./unix/Makefile .
   make generic
