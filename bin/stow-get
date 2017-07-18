@@ -146,7 +146,9 @@ function reset_inst_val {
     elif [ "$inst_type" = "github_direct" ];then
       get_github_direct_latest "$@"
     else
-      err "get_latest is undefined for $inst_type"
+      #err "get_latest is undefined for $inst_type"
+      # try index latest with url_prefix
+      get_index_latest "$url_prefix" "$@"
     fi
     if [ "$version" = "" ];then
       warn "Failed to get the latest version for $package."
@@ -383,7 +385,7 @@ function stow_install_wrapper { ## {{{
 } ## }}}
 
 function get_index_latest { ## {{{
-  local url="$1"
+  local url="${1}/?C=M;O=A"
   local output_detail="${2:-0}"
   local html="$(curl -k "$url" 2>/dev/null)"
   local latest="$(echo "$html"|grep "$package"|grep ".tar.gz<"|grep -v "\-doc\-"|grep -v latest|tail -n1)"
@@ -399,7 +401,7 @@ function get_index_latest { ## {{{
 } ## }}}
 
 function get_gnu_latest { ## {{{
-  get_index_latest "http://ftp.gnu.org/gnu/$package/?C=M;O=A" "$@"
+  get_index_latest "http://ftp.gnu.org/gnu/$package" "$@"
 } ## }}}
 
 function get_github_latest { ## {{{
