@@ -605,6 +605,15 @@ if ! echo "$PKG_CONFIG_PATH"| grep -q "$inst_dir/lib/pkgconfig";then
     export PKG_CONFIG_PATH="$inst_dir/lib/pkgconfig:$PKG_CONFIG_PATH"
   fi
 fi
+if ! echo "$ACLOCAL_PATH"| grep -q "$inst_dir/share/aclocal";then
+#  warn "ACLOCAL_PATH doesn't include $inst_dir/share/aclocal,
+#which may make a problem to search dependencies."
+  if [ -z "$ACLOCAL_PATH" ];then
+    export ACLOCAL_PATH="$inst_dir/share/aclocal:$(echo $LD_LIBRARY_PATH|sed 's|lib:|share/aclocal:|g'|sed 's|lib64:|share/aclocal:|g'|sed 's|lib$|share/aclocal|'|sed 's|lib64$|share/aclocal|g')"
+  else
+    export ACLOCAL_PATH="$inst_dir/lib/share/aclocal:$ACLOCAL_PATH"
+  fi
+fi
 # }}}
 
 # Latest {{{
