@@ -16,7 +16,7 @@ function get_latest {
   fi
   if [ "$output_detail" -eq 1 ];then
     local d="$(echo "$params"|sed -n 6p|cut -d ">" -f2|cut -d "<" -f1)"
-    printf "%15s %8s %10s\n" "$package" "$version"  "$d"
+    printf "%15s %8s %20s\n" "$package" "$version" "$d"
   fi
 }
 get_version

@@ -28,6 +28,6 @@ function get_latest {
   fi
   if [ "$output_detail" -eq 1 ];then
     local d="$(echo "$params"|tail -n1|cut -d ">" -f2|cut -d "<" -f1)"
-    printf "%15s %8s  updated on: %10s\n" "$package" "$version"  "$d"
+    printf "%15s %8s   updated on: %10s\n" "$package" "$version"  "$d"
   fi
 }

@@ -19,6 +19,8 @@ env:
     - PACKAGE=libevent
     - PACKAGE=libffi
     - PACKAGE=libtool
+    - PACKAGE=libXpm
+    - PACKAGE=libX11
     - PACKAGE=lua
     - PACKAGE=m4
     - PACKAGE=mercurial
@@ -62,8 +64,7 @@ script:
   - 'if [ -z "$PACKAGE" ];then ./bin/stow-get list;fi'
   - 'if [ -z "$PACKAGE" ];then ./bin/stow-get packages;fi'
   - 'if [ -z "$PACKAGE" ];then ./bin/stow-get info screen;fi'
-  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get latest wget;fi'
-  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get latest openssl;fi'
+  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get latest $(ls share/stow-get/*sh|cut -d"/" -f3|sed "s/.sh$//");fi'
   - 'if [ -z "$PACKAGE" ];then ./bin/stow-get install -c ./conf_file -d ./conf_dir;fi'
   - 'if [ -z "$PACKAGE" ];then echo "target_postfix=test" >> share/stow-get/autoconf.sh;fi'
   - 'if [ -z "$PACKAGE" ];then ./bin/stow-get install autoconf;fi'

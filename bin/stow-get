@@ -40,14 +40,15 @@ EXIT_WRONG_ARG=100
 EXIT_UNKNOWN_COMMAND=101
 EXIT_NO_PACKAEGE=102
 EXIT_CD_FAIL=103
-EXIT_WRONG_BIN_DEP=104
-EXIT_WRONG_LIB_DEP=105
-EXIT_NO_PAC_CONF=106
-EXIT_NO_VERSION=107
-EXIT_NOT_INDEX=108
-EXIT_INVALID_INST_TYPE=109
-EXIT_NO_STOW_INSTALL=110
-EXIT_NO_DOWNLOADER=111
+EXIT_WRONG_BIN_DEP=110
+EXIT_WRONG_LIB_DEP=111
+EXIT_WRONG_INCLUDE_DEP=112
+EXIT_NO_PAC_CONF=120
+EXIT_NO_VERSION=121
+EXIT_NO_STOW_INSTALL=122
+EXIT_NO_DOWNLOADER=123
+EXIT_NOT_INDEX=124
+EXIT_INVALID_INST_TYPE=125
 # }}}
 
 # Default variables {{{
@@ -128,6 +129,7 @@ function reset_inst_val {
 
   bin_dep=()
   lib_dep=()
+  include_dep=()
 
 
   unset stow_install
@@ -287,6 +289,21 @@ function check_lib { # {{{
   for d in "${pathes[@]}";do
     files=$(get_file_list "$d" "${1}"* 2>/dev/null)
     if [ "$files" != "" ];then
+      echo "$d"
+      return 0
+    fi
+  done
+  return 1
+} # }}}
+
+function check_include { # {{{
+  IFS_ORIG=$IFS
+  IFS=$'\n'
+  pathes=($(echo "${LD_LIBRARY_PATH//:/$'\n'}"|sed 's|/lib64|/include|g'|sed 's|/lib|/include|g'))
+  IFS=$IFS_ORIG
+  local f="${1}"
+  for d in "${pathes[@]}";do
+    if [ -f "$d/$f" ];then
       echo "$d"
       return 0
     fi
@@ -455,7 +472,7 @@ function get_github_latest { ## {{{
     url_prefix="https://github.com/$url_prefix"
   fi
   if [ "$output_detail" -eq 1 ] && [ "$version" != "" ];then
-    printf "%15s %8s  %s\n" "$package" "$version" "$info"
+    printf "%15s %8s   %s\n" "$package" "$version" "$info"
   fi
 } ## }}}
 
@@ -721,8 +738,13 @@ fi
 # Dependency check {{{
 i=0
 pre_packages=()
+checked_packages=()
 while [ "$i" -lt "${#packages[@]}" ];do
   package="${packages[$i]}"
+  if echo " ${checked_packages[*]} "|grep -q " $package ";then
+    ((i++))
+    continue
+  fi
   source_pac_conf
   deps=0
   j=0
@@ -773,10 +795,31 @@ while [ "$i" -lt "${#packages[@]}" ];do
     fi
     ((j++))
   done
+  j=0
+  while [ "$j" -lt ${#include_dep[@]} ];do
+    fp=(${include_dep[j]/_package_/ })
+    f=${fp[0]}
+    p=${fp[1]}
+    if [ "$f" = "" ] || [ "$p" = "" ];then
+      err "Configuration file for ${include_dep[j]} has wrong include_dep definition."
+      exit $EXIT_WRONG_INCLUDE_DEP
+    fi
+    if ! check_include "$f" >/dev/null;then
+      if ! echo " ${pre_packages[*]} "|grep -q " $p ";then
+        if echo " ${packages[*]} "|grep -q " $p ";then
+          packages=($(echo " ${packages[*]} "|sed "s/ $p / /"))
+        fi
+        packages=($(echo " ${packages[*]} "|sed "s/ $package / $p $package /"))
+        deps=1
+      fi
+    fi
+    ((j++))
+  done
   if [ $deps -eq 0 ];then
     pre_packages=("${pre_packages[@]}" "$package")
     ((i++))
   fi
+  checked_packages=("${checked_packages[@]}" "$package")
 done
 # }}}
 

@@ -18,7 +18,7 @@ function get_latest {
   fi
   if [ "$output_detail" -eq 1 ];then
     local d="$(echo "$params"|awk '{print $6" "$7" "$8}')"
-    printf "%15s %8s %10s\n" "$package" "$version"  "$d"
+    printf "%15s %8s %20s\n" "$package" "$version"  "$d"
   fi
 }
 get_version
