@@ -294,7 +294,7 @@ function check_lib { # {{{
 } # }}}
 
 function get_tarball  { # {{{
-  wget --no-check-certificate "$1"
+  curl -k -L -O "$1"
   ret=$?
   if [ $ret -ne 0 ];then
     return $ret
@@ -676,7 +676,7 @@ fi
 # }}}
 
 # Check necessary packages {{{
-necessary_packages=(curl unzip wget stow)
+necessary_packages=(curl unzip stow)
 for p in "${necessary_packages[@]}";do
   if ! type -a "$p" >/dev/null 2>&1;then
     packages=($p "${packages[@]}")
@@ -733,7 +733,7 @@ while [ "$i" -lt "${#packages[@]}" ];do
     l=lib${p}
     if [[ "$p" =~ _package_ ]];then
       lp=(${p/_package_/ })
-      l=${lp[0]}
+      l=lib${lp[0]}
       p=${lp[1]}
     fi
     if [ "$l" = "" ] || [ "$p" = "" ];then

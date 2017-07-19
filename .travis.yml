@@ -7,16 +7,15 @@ before_install:
   - export PATH="$INST_DIR/bin:$PATH"
   - export LD_LIBRARY_PATH="$INST_DIR/lib64:$INST_DIR/lib:$LD_LIBRARY_PATH"
 install:
-  - echo "PACKAGES=(git screen vim)" > ~/.stow-get
-  - echo "PACKAGES=(nano)" > ~/.stow-get
+  - echo "packages=(vim)" > ~/.stow-get
   - mkdir conf_dir
-  - echo "PACKAGES=(nano)" > ./conf_file
+  - echo "packages=(wdiff)" > ./conf_file
   - echo "isnt_type=gnu" > ./conf_dir/wdiff.sh
 script:
   - ./bin/stow-get help
   - ./bin/stow-get version
-  - travis_wait ./bin/stow-get install -V
-  - travis_wait ./bin/stow-get install $(ls share/stow-get/*sh|cut -d"/" -f3|sed "s/.sh$//")
+  - ./bin/stow-get install -V
+  - travis_wait ./bin/stow-get 30 install $(ls share/stow-get/*sh|cut -d"/" -f3|sed "s/.sh$//")
   - ls "$INST_DIR/stow"
   - ls "$INST_DIR/stow/current"
   - ./bin/stow-get uninstall screen
