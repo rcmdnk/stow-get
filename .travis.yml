@@ -15,7 +15,7 @@ install:
 script:
   - ./bin/stow-get help
   - ./bin/stow-get version
-  - travis_wait 30 ./bin/stow-get install -V
+  - travis_wait ./bin/stow-get install -V
   - ./bin/stow-get install $(ls share/stow-get/*sh|cut -d"/" -f3|sed "s/.sh$//")
   - ls "$INST_DIR/stow"
   - ls "$INST_DIR/stow/current"
