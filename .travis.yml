@@ -16,7 +16,7 @@ script:
   - ./bin/stow-get help
   - ./bin/stow-get version
   - travis_wait ./bin/stow-get install -V
-  - ./bin/stow-get install $(ls share/stow-get/*sh|cut -d"/" -f3|sed "s/.sh$//")
+  - travis_wait ./bin/stow-get install $(ls share/stow-get/*sh|cut -d"/" -f3|sed "s/.sh$//")
   - ls "$INST_DIR/stow"
   - ls "$INST_DIR/stow/current"
   - ./bin/stow-get uninstall screen
