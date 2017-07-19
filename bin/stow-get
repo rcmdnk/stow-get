@@ -618,19 +618,19 @@ fi
 # }}}
 
 # Check downloader {{{
-if check_bin curl;then
-  function download {
-    curl -k -L -O "$1"
-  }
-  function get_page {
-    curl -k "$1" 2>/dev/null
-  }
-elif check_bin wget;then
+if check_bin wget;then
   function download {
     wget --no-check-certificate "$1"
   }
   function get_page {
     wget --no-check-certificate -O - "$1" 2>/dev/null
+  }
+elif check_bin curl;then
+  function download {
+    curl -k -L -O "$1"
+  }
+  function get_page {
+    curl -k "$1" 2>/dev/null
   }
 else
   err "Need at least curl or wget."
