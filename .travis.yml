@@ -15,7 +15,39 @@ script:
   - ./bin/stow-get help
   - ./bin/stow-get version
   - ./bin/stow-get install -V
-  - travis_wait ./bin/stow-get 30 install $(ls share/stow-get/*sh|cut -d"/" -f3|sed "s/.sh$//")
+  #- travis_wait 30 ./bin/stow-get install $(ls share/stow-get/*sh|cut -d"/" -f3|sed "s/.sh$//")
+  - rm -rf ~/usr && ./bin/stow-get install autoconf
+  - rm -rf ~/usr && ./bin/stow-get install automake
+  - rm -rf ~/usr && ./bin/stow-get install bzip2
+  - rm -rf ~/usr && ./bin/stow-get install curl
+  - rm -rf ~/usr && ./bin/stow-get install expat
+  - rm -rf ~/usr && ./bin/stow-get install gettext
+  - rm -rf ~/usr && ./bin/stow-get install git
+  - rm -rf ~/usr && ./bin/stow-get install glib
+  - rm -rf ~/usr && ./bin/stow-get install libevent
+  - rm -rf ~/usr && ./bin/stow-get install libffi
+  - rm -rf ~/usr && ./bin/stow-get install libtool
+  - rm -rf ~/usr && ./bin/stow-get install lua
+  - rm -rf ~/usr && ./bin/stow-get install m4
+  - rm -rf ~/usr && ./bin/stow-get install mercurial
+  - rm -rf ~/usr && ./bin/stow-get install m.sh
+  - rm -rf ~/usr && ./bin/stow-get install ncurses
+  - rm -rf ~/usr && ./bin/stow-get install openssl
+  - rm -rf ~/usr && ./bin/stow-get install pkg-config
+  - rm -rf ~/usr && ./bin/stow-get install protobuf
+  - rm -rf ~/usr && ./bin/stow-get install python
+  - rm -rf ~/usr && ./bin/stow-get install readline
+  - rm -rf ~/usr && ./bin/stow-get install rubygems
+  - rm -rf ~/usr && ./bin/stow-get install screen
+  - rm -rf ~/usr && ./bin/stow-get install sl
+  - rm -rf ~/usr && ./bin/stow-get install stow-get
+  - rm -rf ~/usr && ./bin/stow-get install stow
+  - rm -rf ~/usr && ./bin/stow-get install termcap
+  - rm -rf ~/usr && ./bin/stow-get install texinfo
+  - rm -rf ~/usr && ./bin/stow-get install tmux
+  - rm -rf ~/usr && ./bin/stow-get install unzip
+  - rm -rf ~/usr && ./bin/stow-get install vim
+  - rm -rf ~/usr && ./bin/stow-get install wget
   - ls "$INST_DIR/stow"
   - ls "$INST_DIR/stow/current"
   - ./bin/stow-get uninstall screen
