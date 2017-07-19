@@ -1,5 +1,6 @@
 inst_type=tarball
 url_top="http://ftp.gnome.org/pub/gnome/sources/glib/"
+bin_dep=(gettext)
 lib_dep=(ffi_package_libffi)
 function get_latest {
   local output_detail="${1:-0}"
