@@ -7,7 +7,7 @@ before_install:
   - export PATH="$INST_DIR/bin:$PATH"
   - export LD_LIBRARY_PATH="$INST_DIR/lib64:$INST_DIR/lib:$LD_LIBRARY_PATH"
 install:
-  - echo "packages=(vim)" > ~/.stow-get
+  - echo "packages=(autoconf)" > ~/.stow-get
   - mkdir conf_dir
   - echo "packages=(wdiff)" > ./conf_file
   - echo "isnt_type=gnu" > ./conf_dir/wdiff.sh
@@ -16,7 +16,7 @@ script:
   - ./bin/stow-get version
   - ./bin/stow-get install -V
   #- travis_wait 30 ./bin/stow-get install $(ls share/stow-get/*sh|cut -d"/" -f3|sed "s/.sh$//")
-  - rm -rf ~/usr && travis_wait 30 ./bin/stow-get install autoconf
+  #- rm -rf ~/usr && travis_wait 30 ./bin/stow-get install autoconf
   - rm -rf ~/usr && travis_wait 30 ./bin/stow-get install automake
   - rm -rf ~/usr && travis_wait 30 ./bin/stow-get install bzip2
   - rm -rf ~/usr && travis_wait 30 ./bin/stow-get install curl
