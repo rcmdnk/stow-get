@@ -2,7 +2,7 @@ python_version=${python_version:-2}
 inst_type=tarball
 function get_latest {
   local output_detail="${1:-0}"
-  local params="$(curl -k https://www.python.org/downloads/ 2>/dev/null|grep "Download the latest <")"
+  local params="$(get_page https://www.python.org/downloads/|grep "Download the latest <")"
   if [ $python_version = 2 ];then
     local t=$(echo "$params"|cut -d '"' -f 2)
   else

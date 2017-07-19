@@ -8,7 +8,7 @@ configure_opstions="--openssldir="$stow_dir/$target/ssl
 function get_latest {
   local output_detail="${1:-0}"
   local url="https://github.com/openssl/openssl/releases"
-  local html="$(curl -k "$url" 2>/dev/null)"
+  local html="$(get_page "$url")"
   version=$(echo "$html"|grep tag-name|grep "OpenSSL_${openssl_version}"|head -n1|cut -d ">" -f2 |cut -d"<" -f1|sed 's/OpenSSL_//')
   if [ -z "$version" ];then
     err "Failed to get the latest version for $package."

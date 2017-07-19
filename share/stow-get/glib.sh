@@ -4,12 +4,12 @@ bin_dep=(gettext)
 lib_dep=(ffi_package_libffi)
 function get_latest {
   local output_detail="${1:-0}"
-  local version_top="$(curl "$url_top/?C=M;O=A" 2>/dev/null|grep "folder.png"|tail -n1|cut -d'"' -f 6|cut -d '/' -f1)"
+  local version_top="$(get_page "$url_top/?C=M;O=A"|grep "folder.png"|tail -n1|cut -d'"' -f 6|cut -d '/' -f1)"
   if [ -z "$version_top" ];then
     err "Failed to get the latest version for $package."
     return $EXIT_NO_VERSION
   fi
-  local params="$(curl "$url_top/$version_top/?C=M;O=A" 2>/dev/null|grep "tar.xz"|tail -n1)"
+  local params="$(get_page "$url_top/$version_top/?C=M;O=A"|grep "tar.xz"|tail -n1)"
   tarball=$(echo $params|cut -d '"' -f6)
   version=$(echo $tarball|cut -d '-' -f2|cut -d '.' -f 1-3)
   if [ -z "$version" ];then

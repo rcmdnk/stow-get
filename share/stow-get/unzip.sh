@@ -8,7 +8,7 @@ function make_cmd {
 }
 function get_latest {
   local output_detail="${1:-0}"
-  local params="$(curl http://www.info-zip.org/mans/unzip.html 2>/dev/null|grep "INDENTATION" -B10|tail -n11)"
+  local params="$(get_page http://www.info-zip.org/mans/unzip.html|grep "INDENTATION" -B10|tail -n11)"
   version="$(echo "$params"|sed -n 1p|cut -d v -f2|cut -d "<" -f1)"
   if [ -z "$version" ];then
     err "Failed to get the latest version for $package."

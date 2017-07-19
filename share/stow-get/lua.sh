@@ -20,7 +20,7 @@ function make_cmd {
 lib_dep=(readline termcap)
 function get_latest {
   local output_detail="${1:-0}"
-  local params="$(curl http://www.lua.org/ftp/ 2>/dev/null|grep "\"name\"" -A1 | grep lua -A1|grep ".tar.gz<" -A1|head -n2)"
+  local params="$(get_page http://www.lua.org/ftp/|grep "\"name\"" -A1 | grep lua -A1|grep ".tar.gz<" -A1|head -n2)"
   version="$(echo "$params"|head -n1|cut -d'"' -f4|sed 's/lua-//'|sed 's/.tar.gz//')"
   if [ -z "$version" ];then
     err "Failed to get the latest version for $package."

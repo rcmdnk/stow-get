@@ -9,7 +9,7 @@ function make_cmd {
 }
 function get_latest {
   local output_detail="${1:-0}"
-  local params="$(curl http://www.bzip.org 2>/dev/null|grep "current version is")"
+  local params="$(get_page http://www.bzip.org|grep "current version is")"
   version="$(echo "$params"|cut -d ">" -f 3|cut -d "<" -f1)"
   if [ -z "$version" ];then
     err "Failed to get the latest version for $package."
