@@ -11,6 +11,7 @@ env:
     - PACKAGE=automake
     - PACKAGE=bzip2
     - PACKAGE=curl
+    - PACKAGE=emacs
     - PACKAGE=expat
     - PACKAGE=gettext
     - PACKAGE=git
@@ -38,6 +39,7 @@ env:
     - PACKAGE=tmux
     - PACKAGE=unzip
     - PACKAGE=vim
+    - PACKAGE=wdiff
     - PACKAGE=wget
 install:
   - 'if [ -z "$PACKAGE" ];then export INST_DIR="$HOME/usr/local";fi'
@@ -45,8 +47,8 @@ install:
 #  - export LD_LIBRARY_PATH="$INST_DIR/lib64:$INST_DIR/lib:$LD_LIBRARY_PATH"
   - 'if [ -z "$PACKAGE" ];then echo "packages=(autoconf)" > ~/.stow-get;fi'
   - 'if [ -z "$PACKAGE" ];then mkdir conf_dir;fi'
-  - 'if [ -z "$PACKAGE" ];then echo "packages=(wdiff)" > ./conf_file;fi'
-  - 'if [ -z "$PACKAGE" ];then echo "isnt_type=gnu" > ./conf_dir/wdiff.sh;fi'
+  - 'if [ -z "$PACKAGE" ];then echo "packages=(ed)" > ./conf_file;fi'
+  - 'if [ -z "$PACKAGE" ];then echo "isnt_type=gnu" > ./conf_dir/ed.sh;fi'
 script:
   - 'if [ -n "$PACKAGE" ];then travis_wait 30 ./bin/stow-get install $PACKAGE;fi'
   - 'if [ -z "$PACKAGE" ];then ./bin/stow-get help;fi'
@@ -62,7 +64,6 @@ script:
   - 'if [ -z "$PACKAGE" ];then ./bin/stow-get info screen;fi'
   - 'if [ -z "$PACKAGE" ];then ./bin/stow-get latest wget;fi'
   - 'if [ -z "$PACKAGE" ];then ./bin/stow-get latest openssl;fi'
-  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get install -t gnu wget;fi'
   - 'if [ -z "$PACKAGE" ];then ./bin/stow-get install -c ./conf_file -d ./conf_dir;fi'
   - 'if [ -z "$PACKAGE" ];then echo "target_postfix=test" >> share/stow-get/autoconf.sh;fi'
   - 'if [ -z "$PACKAGE" ];then ./bin/stow-get install autoconf;fi'

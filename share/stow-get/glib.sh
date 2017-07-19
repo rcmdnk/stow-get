@@ -1,7 +1,7 @@
 inst_type=tarball
 url_top="http://ftp.gnome.org/pub/gnome/sources/glib/"
 bin_dep=(gettext)
-lib_dep=(ffi_package_libffi)
+lib_dep=(ffi_package_libffi mount_package_util-linux)
 function get_latest {
   local output_detail="${1:-0}"
   local version_top="$(get_page "$url_top/?C=M;O=A"|grep "folder.png"|tail -n1|cut -d'"' -f 6|cut -d '/' -f1)"
