@@ -39,6 +39,10 @@ env:
     - PACKAGE=unzip
     - PACKAGE=vim
     - PACKAGE=wget
+before_install:
+  - export INST_DIR="$HOME/usr/local"
+#  - export PATH="$INST_DIR/bin:$PATH"
+#  - export LD_LIBRARY_PATH="$INST_DIR/lib64:$INST_DIR/lib:$LD_LIBRARY_PATH"
 install:
   - 'if [ -z "$PACKAGE" ];then echo "packages=(autoconf)" > ~/.stow-get;fi'
   - 'if [ -z "$PACKAGE" ];then mkdir conf_dir;fi'
