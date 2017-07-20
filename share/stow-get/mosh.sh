@@ -13,3 +13,5 @@ function get_latest {
     printf "%15s %8s\n" "$package" "$version"
   fi
 }
+get_version
+tarball=mosh-${version}.tar.gz

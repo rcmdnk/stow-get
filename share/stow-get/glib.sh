@@ -1,13 +1,15 @@
 inst_type=tarball
 url_top="http://ftp.gnome.org/pub/gnome/sources/glib/"
 bin_dep=(gettext)
-lib_dep=(ffi_package_libffi mount_package_util-linux)
-configure_options="--disable-libmount"
-mount_check=$(check_lib libmount 1)
-if [ -z "$mount_check" ];then
-  configure_flags="CPPFLAGS=\"-I$HOME/usr/local/include\" LDFLAGS=\"-L$HOME/usr/local/lib\""
-else
-  configure_flags="CPPFLAGS=\"-I$(dirname "$mount_check")/include\" LDFLAGS=\"-L${mount_check}\""
+lib_dep=(ffi_package_libffi)
+if [[ "$OSTYPE" =~ linux ]];then
+  lib_dep=(mount_package_util-linux ${lib_dep[@]})
+  mount_check=$(check_lib libmount 1)
+  if [ -z "$mount_check" ];then
+    configure_flags="CPPFLAGS=\"-I$HOME/usr/local/include\" LDFLAGS=\"-L$HOME/usr/local/lib\""
+  else
+    configure_flags="CPPFLAGS=\"-I$(dirname "$mount_check")/include\" LDFLAGS=\"-L${mount_check}\""
+  fi
 fi
 if check_bin pcretest;then
   pcre_version=($(pcretest -C|head -n1|cut -d ' ' -f 3|tr . ' '))
