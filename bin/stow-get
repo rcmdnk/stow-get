@@ -4,8 +4,8 @@
 #
 # Package manager with stow.
 #
-STOW_GET_VERSION=v0.0.11
-STOW_GET_DATE="3/Jul/2017"
+STOW_GET_VERSION=v0.0.13
+STOW_GET_DATE="7/Jul/2017"
 #
 # }}}
 
@@ -225,6 +225,63 @@ function get_pac_conf { ## {{{
   fi
 } ## }}}
 
+function check_bin { ## {{{
+  local bin=$(which "$1")
+  local ret=$?
+  if [ "$ret" -eq 0 ];then
+    if [ "$2" = 1 ];then
+      echo "$bin"
+    elif [ "$2" = 2 ];then
+      dirname "$bin"
+    fi
+  fi
+  return $ret
+} ## }}}
+
+function check_lib { # {{{
+  IFS_ORIG=$IFS
+  IFS=$'\n'
+  pathes=(${LD_LIBRARY_PATH//:/$'\n'})
+  IFS=$IFS_ORIG
+  for d in "${pathes[@]}";do
+    local lib=""
+    for suf in so dylib a;do
+      if [ -f "${d}/${1}.${suf}" ];then
+        lib="${d}/${1}.${suf}"
+        break
+      fi
+    done
+    if [ -n "$lib" ];then
+      if [ "$2" = 1 ];then
+        echo "$lib"
+      elif [ "$2" = 2 ];then
+        dirname "$lib"
+      fi
+      return 0
+    fi
+  done
+  return 1
+} # }}}
+
+function check_include { # {{{
+  IFS_ORIG=$IFS
+  IFS=$'\n'
+  pathes=($(echo "${LD_LIBRARY_PATH//:/$'\n'}"|sed 's|/lib64|/include|g'|sed 's|/lib|/include|g'))
+  IFS=$IFS_ORIG
+  local f="${1}"
+  for d in "${pathes[@]}";do
+    if [ -f "$d/$f" ];then
+      if [ "$2" = 1 ];then
+        echo "$d/$f"
+      elif [ "$2" = 2 ];then
+        echo "$d"
+      fi
+      return 0
+    fi
+  done
+  return 1
+} # }}}
+
 function source_pac_conf { ## {{{
   reset_inst_val
   get_pac_conf "$package"
@@ -276,40 +333,6 @@ function cleanup_package { # {{{
     fi
   done
   target=$target_tmp
-} # }}}
-
-function check_bin { ## {{{
-  type -a "$1" >/dev/null 2>&1
-} ## }}}
-
-function check_lib { # {{{
-  IFS_ORIG=$IFS
-  IFS=$'\n'
-  pathes=(${LD_LIBRARY_PATH//:/$'\n'})
-  IFS=$IFS_ORIG
-  for d in "${pathes[@]}";do
-    files=$(get_file_list "$d" "${1}"* 2>/dev/null)
-    if [ "$files" != "" ];then
-      echo "$d"
-      return 0
-    fi
-  done
-  return 1
-} # }}}
-
-function check_include { # {{{
-  IFS_ORIG=$IFS
-  IFS=$'\n'
-  pathes=($(echo "${LD_LIBRARY_PATH//:/$'\n'}"|sed 's|/lib64|/include|g'|sed 's|/lib|/include|g'))
-  IFS=$IFS_ORIG
-  local f="${1}"
-  for d in "${pathes[@]}";do
-    if [ -f "$d/$f" ];then
-      echo "$d"
-      return 0
-    fi
-  done
-  return 1
 } # }}}
 
 function get_tarball  { # {{{
@@ -508,7 +531,7 @@ function get_dir_list { ## {{{
 function add_package { ## {{{
   # Ignore share/info/dir which causes a conflict sometime.
   cd_check "$stow_dir"
-  stow --ignore="share/info/dir" "$target"
+  stow --ignore="share/info/dir" --ignore=".travis.yml" "$target"
   ret=$?
   if [ $ret -ne 0 ];then
     err "Failed to place pacakge:${target%%-STOW*} by stow."
@@ -786,7 +809,7 @@ while [ "$i" -lt "${#packages[@]}" ];do
       err "Configuration file for ${lib_dep[j]} has wrong lib_dep definition."
       exit $EXIT_WRONG_LIB_DEP
     fi
-    if ! check_lib "$l" >/dev/null;then
+    if ! check_lib "$l";then
       if ! echo " ${pre_packages[*]} "|grep -q " $p ";then
         if echo " ${packages[*]} "|grep -q " $p ";then
           packages=($(echo " ${packages[*]} "|sed "s/ $p / /"))
@@ -806,7 +829,7 @@ while [ "$i" -lt "${#packages[@]}" ];do
       err "Configuration file for ${include_dep[j]} has wrong include_dep definition."
       exit $EXIT_WRONG_INCLUDE_DEP
     fi
-    if ! check_include "$f" >/dev/null;then
+    if ! check_include "$f";then
       if ! echo " ${pre_packages[*]} "|grep -q " $p ";then
         if echo " ${packages[*]} "|grep -q " $p ";then
           packages=($(echo " ${packages[*]} "|sed "s/ $p / /"))

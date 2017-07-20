@@ -1,6 +1,5 @@
 inst_type=tarball
 url_prefix=https://pkg-config.freedesktop.org/releases/
-glib_check=0
 if ! check_lib glib;then
   lib_dep=(glib)
 else
