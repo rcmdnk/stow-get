@@ -4,8 +4,8 @@
 #
 # Package manager with stow.
 #
-STOW_GET_VERSION=v0.0.11
-STOW_GET_DATE="3/Jul/2017"
+STOW_GET_VERSION=v0.0.13
+STOW_GET_DATE="7/Jul/2017"
 #
 # }}}
 
@@ -508,7 +508,7 @@ function get_dir_list { ## {{{
 function add_package { ## {{{
   # Ignore share/info/dir which causes a conflict sometime.
   cd_check "$stow_dir"
-  stow --ignore="share/info/dir" "$target"
+  stow --ignore="share/info/dir" --ignore=".travis.yml" "$target"
   ret=$?
   if [ $ret -ne 0 ];then
     err "Failed to place pacakge:${target%%-STOW*} by stow."
