@@ -388,6 +388,7 @@ function init_github { ## {{{
 function init_github_direct { ## {{{
   configure=""
   function make_cmd {
+    mkdir -p "$stow_dir"
     cp -r . "$stow_dir/$target"
   }
   init_github
