@@ -226,7 +226,7 @@ function get_pac_conf { ## {{{
 } ## }}}
 
 function check_bin { ## {{{
-  local bin=$(which "$1")
+  local bin=$(which "$1" 2>/dev/null)
   local ret=$?
   if [ "$ret" -eq 0 ];then
     if [ "$2" = 1 ];then
@@ -296,7 +296,7 @@ function source_pac_conf { ## {{{
   target=${package}-STOW-${target_postfix:-${version}}
 
   local init_type=init_"$inst_type"
-  if ! check_bin "$init_type";then
+  if ! type "$init_type" >/dev/null;then
     err "Invalid inst_type: $inst_type for $package"
     return $EXIT_INVALID_INST_TYPE
   fi
@@ -362,7 +362,7 @@ function init_tarball { ## {{{
   directory=${directory:-${package}-${version}}
   tarball=${tarball:-${directory}.tar.gz}
 
-  if ! check_bin stow_install;then
+  if ! type -a stow_install;then
     function stow_install {
       get_tarball "$url_prefix/$tarball"
       ret=$?
@@ -420,7 +420,7 @@ function init_github_direct { ## {{{
 function stow_install_wrapper { ## {{{
   cd_check "$TMP_DIR"
 
-  if ! check_bin stow_install;then
+  if ! type -a stow_install;then
     err "stow_install function is not set."
     return $EXIT_NO_STOW_INSTALL
   fi
