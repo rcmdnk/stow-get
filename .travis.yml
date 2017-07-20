@@ -3,8 +3,8 @@ os:
   - osx
 language: ruby
 env:
-  global:
-    - MAKEFLAGS="-j 2"
+#  global:
+#    - MAKEFLAGS="-j 2"
   matrix:
     - PACKAGE=""
     - PACKAGE=autoconf
@@ -19,8 +19,6 @@ env:
     - PACKAGE=libevent
     - PACKAGE=libffi
     - PACKAGE=libtool
-    - PACKAGE=libXpm
-    - PACKAGE=libX11
     - PACKAGE=lua
     - PACKAGE=m4
     - PACKAGE=mercurial
