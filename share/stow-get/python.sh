@@ -1,6 +1,6 @@
 python_version=${python_version:-2}
 inst_type=tarball
-configure_options="--enable-unicode=ucs4 --enable-shared --enable-optimizations"
+configure_options="--enable-unicode=ucs4 --enable-shared"
 function get_latest {
   local output_detail="${1:-0}"
   local params="$(get_page https://www.python.org/downloads/|grep "Download the latest <")"

@@ -127,6 +127,7 @@ function reset_inst_val {
   repository=""
   directory=""
   configure="./configure"
+  configure_flags=""
   configure_options=""
   index_for_latest=""
 
@@ -385,7 +386,7 @@ function init_tarball { ## {{{
       fi
 
       if [ "$configure" != "" ] && [ -f "$configure" ];then
-        eval $configure --prefix="$stow_dir/$target" $configure_options
+        eval $configure_flags $configure --prefix="$stow_dir/$target" $configure_options
         ret=$?
         if [ $ret -ne 0 ];then
           return $ret

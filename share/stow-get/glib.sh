@@ -2,6 +2,21 @@ inst_type=tarball
 url_top="http://ftp.gnome.org/pub/gnome/sources/glib/"
 bin_dep=(gettext)
 lib_dep=(ffi_package_libffi mount_package_util-linux)
+configure_options="--disable-libmount"
+mount_check=$(check_lib libmount 1)
+if [ -z "$mount_check" ];then
+  configure_flags="CPPFLAGS=\"-I$HOME/usr/local/include\" LDFLAGS=\"-L$HOME/usr/local/lib\""
+else
+  configure_flags="CPPFLAGS=\"-I$(dirname "$mount_check")/include\" LDFLAGS=\"-L${mount_check}\""
+fi
+if check_bin pcretest;then
+  pcre_version=($(pcretest -C|head -n1|cut -d ' ' -f 3|tr . ' '))
+  if [ "${pcre_version[0]}" -lt 8 ] || ( [ "${pcre_version[0]}" -eq 8 ] && [ "${pcre_version[1]}" -lt 13 ] );then
+    bin_dep=(pcre_install_package_pcre ${bin_dep[@]})
+  fi
+else
+  bin_dep=(pcre ${bin_dep[@]})
+fi
 function get_latest {
   local output_detail="${1:-0}"
   local version_top="$(get_page "$url_top/?C=M;O=A"|grep "folder.png"|tail -n1|cut -d'"' -f 6|cut -d '/' -f1)"
