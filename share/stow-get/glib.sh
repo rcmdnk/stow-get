@@ -4,7 +4,7 @@ bin_dep=(gettext)
 lib_dep=(ffi_package_libffi)
 if [[ "$OSTYPE" =~ linux ]];then
   lib_dep=(mount_package_util-linux ${lib_dep[@]})
-  mount_check=$(check_lib libmount 1)
+  mount_check=$(check_lib libmount 2)
   if [ -z "$mount_check" ];then
     configure_flags="CPPFLAGS=\"-I${inst_dir}/include\" LDFLAGS=\"-L${inst_dir}/lib\""
   else
