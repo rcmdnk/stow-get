@@ -391,12 +391,16 @@ function init_tarball { ## {{{
           if [ $ret -ne 0 ];then
             directory=$(find . -type d -depth 1 -name "*$package*"|head -n1)
             if [ -n "$dir" ];then
+              cd_check "$directory" 1
+              ret=$?
+              if [ $ret -ne 0 ];then
+                return $ret
+              fi
+            else
+              return 1
             fi
-            ret=$?
-            return $ret
           fi
         fi
-        return $ret
       fi
 
       before_configure
