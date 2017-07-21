@@ -1,5 +1,5 @@
 os:
-  - linux
+#  - linux
   - osx
 language: ruby
 env:
@@ -15,14 +15,14 @@ env:
 #    - PACKAGE=expat
 #    - PACKAGE=gettext
 #    - PACKAGE=git
-    - PACKAGE=glib
+#    - PACKAGE=glib
 #    - PACKAGE=libevent
 #    - PACKAGE=libffi
 #    - PACKAGE=libtool
 #    - PACKAGE=lua
 #    - PACKAGE=m4
 #    - PACKAGE=mercurial
-    - PACKAGE=mosh
+#    - PACKAGE=mosh
 #    - PACKAGE=ncurses
 #    - PACKAGE=openssl
     - PACKAGE=pkg-config
@@ -50,23 +50,23 @@ install:
   - 'if [ -z "$PACKAGE" ];then echo "packages=(ed)" > ./conf_file;fi'
   - 'if [ -z "$PACKAGE" ];then echo "isnt_type=gnu" > ./conf_dir/ed.sh;fi'
 script:
-  - 'if [ -n "$PACKAGE" ];then travis_wait 30 ./bin/stow-get install $PACKAGE;fi'
-  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get help;fi'
-  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get version;fi'
-  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get install -V;fi'
-  - 'if [ -z "$PACKAGE" ];then ls "$INST_DIR/stow";fi'
-  - 'if [ -z "$PACKAGE" ];then ls "$INST_DIR/stow/current";fi'
-  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get uninstall screen;fi'
-  - 'if [ -z "$PACKAGE" ];then ls "$INST_DIR/stow";fi'
-  - 'if [ -z "$PACKAGE" ];then ls "$INST_DIR/stow/current";fi'
-  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get list;fi'
-  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get packages;fi'
-  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get info screen;fi'
-  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get latest $(ls share/stow-get/*sh|cut -d"/" -f3|sed "s/.sh$//");fi'
-  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get install -c ./conf_file -d ./conf_dir;fi'
-  - 'if [ -z "$PACKAGE" ];then echo "target_postfix=test" >> share/stow-get/autoconf.sh;fi'
-  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get install autoconf;fi'
-  - 'if [ -z "$PACKAGE" ];then ls "$INST_DIR/stow";fi'
-  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get cleanup;fi'
-  - 'if [ -z "$PACKAGE" ];then ls "$INST_DIR/stow";fi'
-  - 'if [ -z "$PACKAGE" ];then ls "$INST_DIR/stow/current";fi'
+  - 'if [ -n "$PACKAGE" ];then travis_wait 30 ./bin/stow-get install -V $PACKAGE;fi'
+#  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get help;fi'
+#  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get version;fi'
+#  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get install -V;fi'
+#  - 'if [ -z "$PACKAGE" ];then ls "$INST_DIR/stow";fi'
+#  - 'if [ -z "$PACKAGE" ];then ls "$INST_DIR/stow/current";fi'
+#  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get uninstall screen;fi'
+#  - 'if [ -z "$PACKAGE" ];then ls "$INST_DIR/stow";fi'
+#  - 'if [ -z "$PACKAGE" ];then ls "$INST_DIR/stow/current";fi'
+#  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get list;fi'
+#  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get packages;fi'
+#  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get info screen;fi'
+#  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get latest $(ls share/stow-get/*sh|cut -d"/" -f3|sed "s/.sh$//");fi'
+#  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get install -c ./conf_file -d ./conf_dir;fi'
+#  - 'if [ -z "$PACKAGE" ];then echo "target_postfix=test" >> share/stow-get/autoconf.sh;fi'
+#  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get install autoconf;fi'
+#  - 'if [ -z "$PACKAGE" ];then ls "$INST_DIR/stow";fi'
+#  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get cleanup;fi'
+#  - 'if [ -z "$PACKAGE" ];then ls "$INST_DIR/stow";fi'
+#  - 'if [ -z "$PACKAGE" ];then ls "$INST_DIR/stow/current";fi'
