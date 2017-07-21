@@ -1,16 +1,29 @@
 inst_type=tarball
 url_top="http://ftp.gnome.org/pub/gnome/sources/glib/"
-bin_dep=(gettext)
-lib_dep=(ffi_package_libffi)
+lib_dep=(ffi_package_libffi gettextlib_package_gettext)
+gettext_check=$(check_lib libmount 2)
+_CPPFLAGS=""
+_LDFLAGS=""
+gettext_check=$(check_lib libgettextlib 2)
+if [ -z "$mount_check" ];then
+  _CPPFLAGS="-I${inst_dir}/include"
+  _LDFLAGS="-L${inst_dir}/lib"
+else
+  _CPPFLAGS="-I$(dirname "$gettext_check")/include"
+  _LDFLAGS="-L$gettext_check"
+fi
 if [[ "$OSTYPE" =~ linux ]];then
   lib_dep=(mount_package_util-linux ${lib_dep[@]})
   mount_check=$(check_lib libmount 2)
   if [ -z "$mount_check" ];then
-    configure_flags="CPPFLAGS=\"-I${inst_dir}/include\" LDFLAGS=\"-L${inst_dir}/lib\""
+    _CPPFLAGS="$_CPPFLAGS -I${inst_dir}/include"
+    _LDFLAGS="$_LDFLAGS -L${inst_dir}/lib"
   else
-    configure_flags="CPPFLAGS=\"-I$(dirname "$mount_check")/include\" LDFLAGS=\"-L${mount_check}\""
+    _CPPFLAGS="$_CPPFLAGS -I$(dirname "$mount_check")/include"
+    _LDFLAGS="$_LDFLAGS -L$mount_check"
   fi
 fi
+configure_flags="CPPFLAGS=\"$_CPPFLAGS\" LDFLAGS=\"$_LDFLAGS\""
 if check_bin pcretest;then
   pcre_version=($(pcretest -C|head -n1|cut -d ' ' -f 3|tr . ' '))
   if [ "${pcre_version[0]}" -lt 8 ] || ( [ "${pcre_version[0]}" -eq 8 ] && [ "${pcre_version[1]}" -lt 13 ] );then
