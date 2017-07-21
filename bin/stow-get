@@ -418,6 +418,9 @@ function init_tarball { ## {{{
       fi
 
       make_cmd
+      if [ $ret -ne 0 ];then
+        return $ret
+      fi
     }
   fi
 } ## }}}

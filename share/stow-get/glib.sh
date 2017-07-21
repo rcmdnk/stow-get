@@ -12,8 +12,6 @@ if [[ "$OSTYPE" =~ linux ]];then
   fi
 fi
 echo $configure_flags
-ls $inst_dir/include
-ls $inst_dir/lib
 if check_bin pcretest;then
   pcre_version=($(pcretest -C|head -n1|cut -d ' ' -f 3|tr . ' '))
   if [ "${pcre_version[0]}" -lt 8 ] || ( [ "${pcre_version[0]}" -eq 8 ] && [ "${pcre_version[1]}" -lt 13 ] );then
