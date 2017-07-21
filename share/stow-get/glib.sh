@@ -6,11 +6,14 @@ if [[ "$OSTYPE" =~ linux ]];then
   lib_dep=(mount_package_util-linux ${lib_dep[@]})
   mount_check=$(check_lib libmount 1)
   if [ -z "$mount_check" ];then
-    configure_flags="CPPFLAGS=\"-I$HOME/usr/local/include\" LDFLAGS=\"-L$HOME/usr/local/lib\""
+    configure_flags="CPPFLAGS=\"-I${inst_dir}/include\" LDFLAGS=\"-L${inst_dir}/lib\""
   else
     configure_flags="CPPFLAGS=\"-I$(dirname "$mount_check")/include\" LDFLAGS=\"-L${mount_check}\""
   fi
 fi
+echo $configure_flags
+ls $inst_dir/include
+ls $inst_dir/lib
 if check_bin pcretest;then
   pcre_version=($(pcretest -C|head -n1|cut -d ' ' -f 3|tr . ' '))
   if [ "${pcre_version[0]}" -lt 8 ] || ( [ "${pcre_version[0]}" -eq 8 ] && [ "${pcre_version[1]}" -lt 13 ] );then
