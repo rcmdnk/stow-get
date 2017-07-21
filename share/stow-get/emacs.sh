@@ -6,3 +6,4 @@ if [ -z "$xml2" ];then
 else
   configure_flags="CFLAGS=$(xml2-config --cflags)"
 fi
+configure_options="$configure_options --disable-ns-self-contained"

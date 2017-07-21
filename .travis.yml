@@ -25,7 +25,7 @@ env:
 #    - PACKAGE=mosh
 #    - PACKAGE=ncurses
 #    - PACKAGE=openssl
-    - PACKAGE=pkg-config
+#    - PACKAGE=pkg-config
 #    - PACKAGE=protobuf
 #    - PACKAGE=python
 #    - PACKAGE=readline
@@ -50,7 +50,7 @@ install:
   - 'if [ -z "$PACKAGE" ];then echo "packages=(ed)" > ./conf_file;fi'
   - 'if [ -z "$PACKAGE" ];then echo "isnt_type=gnu" > ./conf_dir/ed.sh;fi'
 script:
-  - 'if [ -n "$PACKAGE" ];then travis_wait 30 ./bin/stow-get install -V $PACKAGE;fi'
+  - 'if [ -n "$PACKAGE" ];then travis_wait 30 ./bin/stow-get install $PACKAGE;fi'
 #  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get help;fi'
 #  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get version;fi'
 #  - 'if [ -z "$PACKAGE" ];then ./bin/stow-get install -V;fi'
