@@ -200,8 +200,16 @@ function err { ## {{{
 function cd_check { ## {{{
   dir="$1"
   no_exit="$2"
-  cd "$dir" || err "can not cd to $dir."
-  ret=$?
+  if [ -n "$1" ];then
+    cd "$dir"
+    ret=$?
+    if [ "$ret" -ne 0 ];then
+      err "can not cd to $dir."
+    fi
+  else
+    err "dir is empty for cd_check."
+    ret=1
+  fi
   if [ $ret != 0 ] && [ "$no_exit" = "" ];then
     exit $EXIT_CD_FAIL
   fi
@@ -376,6 +384,18 @@ function init_tarball { ## {{{
       cd_check "$directory" 1
       ret=$?
       if [ $ret -ne 0 ];then
+        directory=$(find . -type d -depth 1 -name "*$version*"|head -n1)
+        if [ -n "$dir" ];then
+          cd_check "$directory" 1
+          ret=$?
+          if [ $ret -ne 0 ];then
+            directory=$(find . -type d -depth 1 -name "*$package*"|head -n1)
+            if [ -n "$dir" ];then
+            fi
+            ret=$?
+            return $ret
+          fi
+        fi
         return $ret
       fi
 
@@ -463,6 +483,11 @@ function get_github_latest { ## {{{
     if [ -n "$tarballtmp" ];then
       tarball=$(echo "$tarballtmp"|awk '{n=split($0, tmp, "/")}{print tmp[n]}')
       url_prefix=$(echo "$tarballtmp"|sed "s|/$tarball||")
+    else
+      local tarballtmp=$(echo "$json"|grep "tarball_url"|head -n1|cut -d '"' -f4)
+      if [ -n "$tarballtmp" ];then
+        tarball=$(echo "$tarballtmp"|awk '{n=split($0, tmp, "/")}{print tmp[n]}').tar.gz
+      fi
     fi
   else
     json=$(get_page https://api.github.com/repos/$user/$repository/tags)
