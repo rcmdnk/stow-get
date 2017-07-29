@@ -70,3 +70,4 @@ script:
   - 'if [ -z "$PACKAGE" ];then ./bin/stow-get cleanup;fi'
   - 'if [ -z "$PACKAGE" ];then ls "$INST_DIR/stow";fi'
   - 'if [ -z "$PACKAGE" ];then ls "$INST_DIR/stow/current";fi'
+
