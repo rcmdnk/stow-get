@@ -5,7 +5,7 @@
 # Package manager with stow.
 #
 STOW_GET_VERSION=v0.0.15
-STOW_GET_DATE="21/Jul/2017"
+STOW_GET_DATE="31/Jul/2017"
 #
 # }}}
 
@@ -15,15 +15,15 @@ The MIT License (MIT)
 
 Copyright (c) 2017 rcmdnk
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to
-deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-sell copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -513,7 +513,7 @@ function get_github_latest { ## {{{
     version=$(echo "$html"|grep css-truncate-target|head -n1|cut -d ">" -f2 |cut -d"<" -f1|sed 's/^v//')
     if [ "$version" != "" ];then
       info="The latest release published on: $(echo "$html"|grep -A1 "released this"|head -n1|cut -d">" -f2|cut -d"<" -f1)"
-      local tarballtmp=$(echo "$html"|grep "tar.gz"|grep "$version"|head -n1|cut -d'"' -f2)
+      local tarballtmp=$(echo "$html"|grep href|grep "tar.gz"|grep "$version"|head -n1|cut -d'"' -f2)
       if [ -n "$tarballtmp" ];then
         tarball=$(echo "$tarballtmp"|awk '{n=split($0, tmp, "/")}{print tmp[n]}')
         url_prefix=$(echo "$tarballtmp"|sed "s|/$tarball||")
@@ -521,7 +521,7 @@ function get_github_latest { ## {{{
     else
       version=$(echo "$html"|grep tag-name|head -n1|cut -d ">" -f2 |cut -d"<" -f1|sed 's/^v//')
       info="The latest tag committed on: $(echo "$html"|grep "relative-time"|head -n1|cut -d">" -f2|cut -d"<" -f1)"
-      local tarballtmp=$(echo "$html"|grep "tar.gz"|grep "$version"|head -n1|cut -d'"' -f2)
+      local tarballtmp=$(echo "$html"|grep href|grep "tar.gz"|grep "$version"|head -n1|cut -d'"' -f2)
       if [ -n "$tarballtmp" ];then
         tarball=$(echo "$tarballtmp"|awk '{n=split($0, tmp, "/")}{print tmp[n]}')
         url_prefix=$(echo "$tarballtmp"|sed "s|/$tarball||")
