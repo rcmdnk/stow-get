@@ -4,7 +4,7 @@
 #
 # Package manager with stow.
 #
-STOW_GET_VERSION=v0.0.22
+STOW_GET_VERSION=v0.0.23
 STOW_GET_DATE="2/Aug/2017"
 #
 # }}}
@@ -911,7 +911,16 @@ trap 'rm -rf "$TMP_DIR"' EXIT HUP INT QUIT ABRT SEGV TERM
 # }}}
 
 # Main loop {{{
+function mylog {
+  if [ "$verbose" -eq 1 ];then
+    "$@"
+  else
+    log="$log\n"$(stow_install_wrapper 2>&1)
+  fi
+}
+
 for package in "${packages[@]}";do
+  log=""
   source_pac_conf
 
   if [ "$dryrun" -eq 1 ];then
@@ -928,9 +937,9 @@ for package in "${packages[@]}";do
     banner_v "$target was already installed."
     if [ "$force" -eq 1 ];then
       banner_v "Reinstall $target."
-      rm_package
+      mylog rm_package
     else
-      add_package
+      mylog add_package
       continue
     fi
   else
@@ -940,23 +949,18 @@ for package in "${packages[@]}";do
       target_tmp=$target
       for p in ${current_package};do
         target=$p
-        rm_package 1
+        mylog rm_package 1
       done
       target=$target_tmp
     fi
   fi
 
   # Install
-  if [ "$verbose" -eq 1 ];then
-    stow_install_wrapper
-  else
-    log=$(stow_install_wrapper 2>&1)
-    if [ $dryrun -eq 1 ];then
-      echo "$log"
-    fi
-  fi
-
+  mylog  stow_install_wrapper
   ret=$?
+  if [ $dryrun -eq 1 ];then
+    echo "$log"
+  fi
 
   if [ $ret -ne 0 ];then
     if [ "$verbose" -eq 0 ];then
