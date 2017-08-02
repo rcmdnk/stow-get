@@ -4,7 +4,7 @@
 #
 # Package manager with stow.
 #
-STOW_GET_VERSION=v0.0.23
+STOW_GET_VERSION=v0.0.24
 STOW_GET_DATE="2/Aug/2017"
 #
 # }}}
@@ -625,8 +625,8 @@ function get_list { ## {{{
 
 # Check argumetns {{{
 
-COMMANDS=(install reinstall rm remove uninstall update upgrade list packages clean cleanup info latest version license help)
-NEED_ARGS=(uninstall info latest)
+COMMANDS=(commands install reinstall rm remove uninstall update upgrade list packages clean cleanup info latest version license help)
+NEED_ARGS=(commands uninstall info latest)
 
 if [ "$#" -eq 0 ] || [ "$1" = "help" ] || [ "$1" = "-h" ];then
   echo "$HELP"
@@ -650,6 +650,9 @@ if [ "$command" = "rm" ] || [ "$command" = "remove" ];then
 fi
 if [ "$command" = "reinstall" ];then
   force=1
+fi
+if [ "$command" = "commands" ];then
+  dryrun=1
 fi
 
 while getopts c:d:i:t:CfDVvlh OPT;do
@@ -947,25 +950,32 @@ for package in "${packages[@]}";do
     export PATH=$stow_dir/$target/bin:$PATH
   fi
 
-  if [ -d "$stow_dir/$target" ];then
-    banner_v "$target was already installed."
-    if [ "$force" -eq 1 ];then
-      banner_v "Reinstall $target."
-      mylog rm_package
+  if [ "$command" != "commands" ];then
+    if [ -d "$stow_dir/$target" ];then
+      banner_v "$target was already installed."
+      if [ "$force" -eq 1 ];then
+        banner_v "Reinstall $target."
+        mylog rm_package
+      else
+        if [ ! -f "$current_dir/$target" ];then
+          mylog add_package
+        fi
+        if [ $dryrun -eq 1 ];then
+          printf "$log"
+        fi
+        continue
+      fi
     else
-      mylog add_package
-      continue
-    fi
-  else
-    # Uninstall old package
-    current_package=$(get_file_list "$current_dir" "${package}-STOW-*")
-    if [ "$current_package" != "" ];then
-      target_tmp=$target
-      for p in ${current_package};do
-        target=$p
-        mylog rm_package 1
-      done
-      target=$target_tmp
+      # Uninstall old package
+      current_package=$(get_file_list "$current_dir" "${package}-STOW-*")
+      if [ "$current_package" != "" ];then
+        target_tmp=$target
+        for p in ${current_package};do
+          target=$p
+          mylog rm_package 1
+        done
+        target=$target_tmp
+      fi
     fi
   fi
 
