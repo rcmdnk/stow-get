@@ -12,3 +12,7 @@ function before_configure {
   ./autogen.sh
 }
 configure_options="--enable-colors256"
+ncurses_check=$(check_lib libncurses 2)
+if [ -n "ncurses_check" ];then
+  configure_flags="CPPFLAGS=\"-I$(dirname $ncurses)/include\" LDFLAGS=\"-L$ncurses_check\""
+fi
