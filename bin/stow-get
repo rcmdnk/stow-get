@@ -300,7 +300,7 @@ function source_pac_conf { ## {{{
     source "$pac_conf"
   fi
   if [ "$inst_type" = "" ];then
-    warn "No inst_type is given. Trying to $default_inst_type type installation."
+    warn "No inst_type is given. Trying to $default_inst_type type installation for $package."
     inst_type=$default_inst_type
   fi
   get_version

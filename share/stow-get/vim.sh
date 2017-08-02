@@ -3,5 +3,5 @@ configure_options="--enable-luainterp=yes --enable-perlinterp=yes --enable-pytho
 lib_dep=(readline termcap lua ncurses)
 ncurses_check=$(check_lib libncurses 2)
 if [ -n "ncurses_check" ];then
-  configure_flags="CPPFLAGS=\"-I$(dirname $ncurses)/include\" LDFLAGS=\"-L$ncurses_check\""
+  configure_flags="CPPFLAGS=\"-I$(dirname $ncurses_check)/include\" LDFLAGS=\"-L$ncurses_check\""
 fi
