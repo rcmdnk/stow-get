@@ -467,7 +467,11 @@ function init_github_direct { ## {{{
 } ## }}}
 
 function stow_install_wrapper { ## {{{
-  cd_check "$TMP_DIR"
+  if [ $dryrun -eq 1 ];then
+    echo "cd \"\$TMP_DIR\""
+  else
+    cd "$TMP_DIR"
+  fi
 
   if ! check_bin stow_install;then
     err "stow_install function is not set."
@@ -908,6 +912,9 @@ done
 # Prepare tmp dir/path {{{
 TMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TMP_DIR"' EXIT HUP INT QUIT ABRT SEGV TERM
+if [ $dryrun -eq 1 ];then
+  echo "TMP_DIR=\$(mktemp -d)"
+fi
 # }}}
 
 # Main loop {{{
@@ -976,6 +983,9 @@ for package in "${packages[@]}";do
   fi
 done
 cleanup_package
+if [ $dryrun -eq 1 ];then
+  echo "rm -rf \$TMP_DIR"
+fi
 # }}}
 
 # vim: foldmethod=marker
