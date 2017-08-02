@@ -915,7 +915,7 @@ function mylog {
   if [ "$verbose" -eq 1 ];then
     "$@"
   else
-    log="$log\n"$("$@" 2>&1)
+    log="${log}$("$@" 2>&1)\n"
   fi
 }
 
