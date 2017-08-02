@@ -982,13 +982,12 @@ for package in "${packages[@]}";do
   # Install
   mylog  stow_install_wrapper
   ret=$?
-  if [ $dryrun -eq 1 ];then
-    printf "$log"
-  fi
-
   if [ $ret -eq 0 ];then
     mylog add_package
     ret=$?
+  fi
+  if [ $dryrun -eq 1 ];then
+    printf "$log"
   fi
 
   if [ $ret -ne 0 ];then
