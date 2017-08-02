@@ -428,8 +428,14 @@ function init_tarball { ## {{{
         return $ret
       fi
 
-      if [ "$configure" != "" ] && [ -f "$configure" ];then
-        execute eval $configure_flags $configure --prefix="$stow_dir/$target" $configure_options
+      if [ "$configure" != "" ];then
+        if [ "$dryrun" -eq 0 ];then
+          if [ -f "$configure" ];then
+            eval $configure_flags $configure --prefix="$stow_dir/$target" $configure_options
+          fi
+        else
+          echo $configure_flags $configure --prefix="$stow_dir/$target" $configure_options
+        fi
         ret=$?
         if [ $ret -ne 0 ];then
           return $ret
