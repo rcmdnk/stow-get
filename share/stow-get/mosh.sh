@@ -13,3 +13,7 @@ function get_latest {
     printf "%15s %8s\n" "$package" "$version"
   fi
 }
+ncurses_check=$(check_lib libncurses 2)
+if [ -n "ncurses_check" ];then
+  configure_flags="LDFLAGS=\"-L$ncurses_check\""
+fi

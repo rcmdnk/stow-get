@@ -5,7 +5,7 @@ gettext_check=$(check_lib libmount 2)
 _CPPFLAGS=""
 _LDFLAGS=""
 gettext_check=$(check_lib libgettextlib 2)
-if [ -z "$mount_check" ];then
+if [ -z "$gettext_check" ];then
   _CPPFLAGS="-I${inst_dir}/include"
   _LDFLAGS="-L${inst_dir}/lib"
 else
