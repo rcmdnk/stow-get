@@ -915,7 +915,7 @@ function mylog {
   if [ "$verbose" -eq 1 ];then
     "$@"
   else
-    log="$log\n"$(stow_install_wrapper 2>&1)
+    log="$log\n"$("$@" 2>&1)
   fi
 }
 
