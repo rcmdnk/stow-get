@@ -919,6 +919,7 @@ done
 TMP_DIR=$(mktemp -d)
 trap 'rm -rf "$TMP_DIR"' EXIT HUP INT QUIT ABRT SEGV TERM
 if [ $dryrun -eq 1 ];then
+  banner "Prepare working space"
   echo "TMP_DIR=\$(mktemp -d)"
 fi
 # }}}
@@ -990,6 +991,7 @@ for package in "${packages[@]}";do
 done
 cleanup_package
 if [ $dryrun -eq 1 ];then
+  banner "Remove working space"
   echo "rm -rf \$TMP_DIR"
 fi
 # }}}
