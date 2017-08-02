@@ -959,12 +959,12 @@ for package in "${packages[@]}";do
   mylog  stow_install_wrapper
   ret=$?
   if [ $dryrun -eq 1 ];then
-    echo "$log"
+    printf "$log"
   fi
 
   if [ $ret -ne 0 ];then
     if [ "$verbose" -eq 0 ];then
-      echo "$log"
+      printf "$log"
     fi
     err "Failed to install $package"
     exit $ret
