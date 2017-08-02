@@ -962,6 +962,11 @@ for package in "${packages[@]}";do
     printf "$log"
   fi
 
+  if [ $ret -eq 0 ];then
+    mylog add_package
+    ret=$?
+  fi
+
   if [ $ret -ne 0 ];then
     if [ "$verbose" -eq 0 ];then
       printf "$log"
@@ -969,8 +974,6 @@ for package in "${packages[@]}";do
     err "Failed to install $package"
     exit $ret
   fi
-
-  add_package
 done
 cleanup_package
 # }}}
