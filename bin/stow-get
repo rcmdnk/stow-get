@@ -983,6 +983,7 @@ for package in "${packages[@]}";do
   mylog  stow_install_wrapper
   ret=$?
   if [ $ret -eq 0 ];then
+    log="${log}# stow installation\n"
     mylog add_package
     ret=$?
   fi
