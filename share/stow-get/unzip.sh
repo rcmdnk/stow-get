@@ -1,10 +1,10 @@
 inst_type=tarball
 url_prefix=ftp://ftp.info-zip.org/pub/infozip/src
 function make_cmd {
-  cp ./unix/Makefile .
-  make generic
-  mkdir -p "$stow_dir/$target/bin/"
-  cp unzip "$stow_dir/$target/bin/"
+  execute cp ./unix/Makefile .
+  execute make generic
+  execute mkdir -p "$stow_dir/$target/bin/"
+  execute cp unzip "$stow_dir/$target/bin/"
 }
 function get_latest {
   local output_detail="${1:-0}"

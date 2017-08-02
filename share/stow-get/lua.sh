@@ -13,9 +13,9 @@ elif [[ "$OSTYPE" =~ bsd ]];then
   plathome=freebsd
 fi
 function make_cmd {
-  make $plathome MYLIBS=" -ltermcap" MYLDFLAGS=" -L$inst_dir/lib" MYCFLAGS=" \
+  execute make $plathome MYLIBS=" -ltermcap" MYLDFLAGS=" -L$inst_dir/lib" MYCFLAGS=" \
     -I$inst_dir/usr/local/include"
-  make install INSTALL_TOP="$stow_dir/$target"
+  execute make install INSTALL_TOP="$stow_dir/$target"
 }
 lib_dep=(readline termcap)
 function get_latest {

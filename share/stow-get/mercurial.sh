@@ -2,9 +2,8 @@ inst_type=tarball
 version_safe=4.2.1
 url_prefix=https://www.mercurial-scm.org/release/
 function make_cmd {
-  which python
-  make build
-  python setup.py install --prefix="$stow_dir/$target" --force
+  execute make build
+  execute python setup.py install --prefix="$stow_dir/$target" --force
 }
 function get_latest {
   local output_detail="${1:-0}"

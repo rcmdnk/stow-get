@@ -1,11 +1,11 @@
 inst_type=tarball
 function make_cmd {
   if [[ "$OSTYPE" =~ darwin ]];then
-    make
+    execute make
   else
-    make -f Makefile-libbz2_so
+    execute make -f Makefile-libbz2_so
   fi
-  make install PREFIX="$stow_dir/$target"
+  execute make install PREFIX="$stow_dir/$target"
 }
 function get_latest {
   local output_detail="${1:-0}"

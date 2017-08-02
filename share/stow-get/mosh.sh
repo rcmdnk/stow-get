@@ -3,7 +3,7 @@ user=mobile-shell
 bin_dep=(automake autoconf)
 lib_dep=(protobuf ncurses)
 function before_configure {
-  ./autogen.sh
+  execute ./autogen.sh
 }
 function get_latest {
   local output_detail="${1:-0}"

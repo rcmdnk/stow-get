@@ -4,7 +4,7 @@
 #
 # Package manager with stow.
 #
-STOW_GET_VERSION=v0.0.20
+STOW_GET_VERSION=v0.0.21
 STOW_GET_DATE="2/Aug/2017"
 #
 # }}}
@@ -114,6 +114,23 @@ See more details at: https://github.com/rcmdnk/stow-get
 "
 # }}}
 
+# execute {{{
+function execute {
+  if [ $dryrun -eq 1 ];then
+    echo  "$@"
+  else
+    "$@"
+  fi
+}
+function execute_patch {
+  if [ "$dryrun" -eq 1 ];then
+    echo "patch -p2 < $1"
+  else
+    patch -p2 < "$1"
+  fi
+}
+# }}}
+
 # Global variables for installation {{{
 function reset_inst_val {
   version=""
@@ -141,7 +158,7 @@ function reset_inst_val {
     :
   }
   function make_cmd {
-    make all && make install
+    execute make all && execute make install
   }
   function get_latest {
     if [ "$index_for_latest" != "" ];then
@@ -201,7 +218,7 @@ function cd_check { ## {{{
   dir="$1"
   no_exit="$2"
   if [ -n "$1" ];then
-    cd "$dir"
+    execute cd "$dir"
     ret=$?
     if [ "$ret" -ne 0 ];then
       err "can not cd to $dir."
@@ -353,19 +370,19 @@ function get_tarball  { # {{{
     return $ret
   fi
   if echo "$1"|grep -q "tar.gz$";then
-    tar zxf "${1##*/}"
+    execute tar zxf "${1##*/}"
   elif echo $tarball|grep -q "tgz$";then
-    tar zxf "${1##*/}"
+    execute tar zxf "${1##*/}"
   elif echo $tarball|grep -q "tar.xz$";then
-    tar Jxf "${1##*/}"
+    execute tar Jxf "${1##*/}"
   elif echo $tarball|grep -q "tar.bz2$";then
-    tar jxf "${1##*/}"
+    execute tar jxf "${1##*/}"
   elif echo $tarball|grep -q "tar.Z$";then
-    tar zxf "${1##*/}"
+    execute tar zxf "${1##*/}"
   elif echo $tarball|grep -q "tar$";then
-    tar xf "${1##*/}"
+    execute tar xf "${1##*/}"
   elif echo $tarball|grep -q "zip$";then
-    unzip "${1##*/}"
+    execute unzip "${1##*/}"
   fi
 } # }}}
 
@@ -410,7 +427,7 @@ function init_tarball { ## {{{
       fi
 
       if [ "$configure" != "" ] && [ -f "$configure" ];then
-        eval $configure_flags $configure --prefix="$stow_dir/$target" $configure_options
+        execute eval $configure_flags $configure --prefix="$stow_dir/$target" $configure_options
         ret=$?
         if [ $ret -ne 0 ];then
           return $ret
@@ -441,8 +458,8 @@ function init_github { ## {{{
 function init_github_direct { ## {{{
   configure=""
   function make_cmd {
-    mkdir -p "$stow_dir"
-    cp -r . "$stow_dir/$target"
+    execute mkdir -p "$stow_dir"
+    execute cp -r . "$stow_dir/$target"
   }
   init_github
 } ## }}}
@@ -566,25 +583,25 @@ function get_dir_list { ## {{{
 function add_package { ## {{{
   # Ignore share/info/dir which causes a conflict sometime.
   cd_check "$stow_dir"
-  stow --ignore="share/info/dir" --ignore=".travis.yml" "$target"
+  execute stow --ignore="share/info/dir" --ignore=".travis.yml" "$target"
   ret=$?
   if [ $ret -ne 0 ];then
     err "Failed to place pacakge:${target%%-STOW*} by stow."
     exit $ret
   fi
-  mkdir -p "$current_dir"
-  touch "$current_dir/$target"
+  execute mkdir -p "$current_dir"
+  execute touch "$current_dir/$target"
 } ## }}}
 
 function rm_package { ## {{{
   clean=${1:-0}
   if [ -f "${current_dir}/${target}" ];then
     cd_check "$stow_dir"
-    stow -D "$target"
-    rm -f "${current_dir}/${target}"
+    execute stow -D "$target"
+    execute rm -f "${current_dir}/${target}"
   fi
   if [ "$clean" = "1" ];then
-    rm -rf "${stow_dir:?}/${target}"
+    execute rm -rf "${stow_dir:?}/${target}"
   fi
 } ## }}}
 
@@ -700,14 +717,14 @@ fi
 # Check downloader {{{
 if check_bin wget;then
   function download {
-    wget --no-check-certificate "$1"
+    execute wget --no-check-certificate "$1"
   }
   function get_page {
     wget --no-check-certificate -O - "$1" 2>/dev/null
   }
 elif check_bin curl;then
   function download {
-    curl -k -L -O "$1"
+    execute curl -k -L -O "$1"
   }
   function get_page {
     curl -k "$1" 2>/dev/null
@@ -895,7 +912,11 @@ trap 'rm -rf "$TMP_DIR"' EXIT HUP INT QUIT ABRT SEGV TERM
 for package in "${packages[@]}";do
   source_pac_conf
 
-  banner "Installing $stow_dir/$target"
+  if [ "$dryrun" -eq 1 ];then
+    banner "Install commands for $package"
+  else
+    banner "Installing $stow_dir/$target"
+  fi
 
   if [ "$package" = "stow" ];then
     export PATH=$stow_dir/$target/bin:$PATH
@@ -905,13 +926,9 @@ for package in "${packages[@]}";do
     banner_v "$target was already installed."
     if [ "$force" -eq 1 ];then
       banner_v "Reinstall $target."
-      if [ $dryrun -eq 0 ];then
-        rm_package
-      fi
+      rm_package
     else
-      if [ $dryrun -eq 0 ];then
-        add_package
-      fi
+      add_package
       continue
     fi
   else
@@ -927,16 +944,16 @@ for package in "${packages[@]}";do
     fi
   fi
 
-  if [ $dryrun -eq 1 ];then
-    continue
-  fi
-
   # Install
   if [ "$verbose" -eq 1 ];then
     stow_install_wrapper
   else
     log=$(stow_install_wrapper 2>&1)
+    if [ $dryrun -eq 1 ];then
+      echo "$log"
+    fi
   fi
+
   ret=$?
 
   if [ $ret -ne 0 ];then
