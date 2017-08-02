@@ -940,17 +940,12 @@ for package in "${packages[@]}";do
   log=""
   source_pac_conf
 
-  if [ "$dryrun" -eq 1 ];then
-    banner "Install commands for $package"
-  else
-    banner "Installing $stow_dir/$target"
-  fi
-
   if [ "$package" = "stow" ];then
     export PATH=$stow_dir/$target/bin:$PATH
   fi
 
   if [ "$command" != "commands" ];then
+    banner "Installing $stow_dir/$target"
     if [ -d "$stow_dir/$target" ];then
       banner_v "$target was already installed."
       if [ "$force" -eq 1 ];then
@@ -977,6 +972,8 @@ for package in "${packages[@]}";do
         target=$target_tmp
       fi
     fi
+  else
+    banner "Install commands for $package"
   fi
 
   # Install
