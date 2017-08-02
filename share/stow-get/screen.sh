@@ -14,6 +14,6 @@ function before_configure {
 }
 configure_options="--enable-colors256"
 ncurses_check=$(check_lib libncurses 2)
-if [ -n "ncurses_check" ];then
+if [ -n "$ncurses_check" ];then
   configure_flags="CPPFLAGS=\"-I$(dirname $ncurses_check)/include\" LDFLAGS=\"-L$ncurses_check\""
 fi
