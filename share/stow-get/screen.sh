@@ -10,7 +10,6 @@ function before_configure {
   download https://gist.githubusercontent.com/rcmdnk/8a90eba829fd789a4e058492b494f862/raw/b3104ce355ed5ef17df77caa2af7d99c86a56457/screen-utf8-osc.diff
   execute_patch screen-utf8-nfd.patch
   execute_patch screen-utf8-osc.diff
-  execute ./autogen.sh
 }
 configure_options="--enable-colors256"
 ncurses_check=$(check_lib libncurses 2)
