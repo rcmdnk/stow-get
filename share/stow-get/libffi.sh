@@ -8,3 +8,6 @@ if check_bin autoconf;then
 else
   bin_dep=(autoconf ${bin_dep[@]})
 fi
+function before_configure {
+  execute ./autogen.sh
+}

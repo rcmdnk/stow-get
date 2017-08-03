@@ -156,11 +156,6 @@ function reset_inst_val {
 
 
   unset stow_install
-  function autogen_cmd {
-    if [ -x ./autogen.sh ];then
-      ./autogen.sh
-    fi
-  }
   function before_configure {
     :
   }
@@ -425,12 +420,6 @@ function init_tarball { ## {{{
             fi
           fi
         fi
-      fi
-
-      autogen_cmd
-      ret=$?
-      if [ $ret -ne 0 ];then
-        return $ret
       fi
 
       before_configure
