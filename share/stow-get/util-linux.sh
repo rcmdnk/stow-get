@@ -11,6 +11,9 @@ for p_v in "" 2.7 2.6 2.5 2.4;do
     break
   fi
 done
+function before_configure {
+  execute ./autogen.sh
+}
 if [ "$UID" -ne 0 ];then
   configure_options="--disable-makeinstall-chown"
 fi
