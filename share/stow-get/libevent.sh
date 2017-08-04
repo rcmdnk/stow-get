@@ -15,5 +15,5 @@ elif [ -d /opt/openssl ];then
   openssl_dir="/opt/openssl"
 fi
 if [ -n "$openssl_dir" ];then
-  configure_options="LDFLAGS='-L${openssl_dir}/lib' CPPFLAGS='-I${openssl_dir}/include'"
+  configure_flags="LDFLAGS='-L${openssl_dir}/lib' CPPFLAGS='-I${openssl_dir}/include'"
 fi

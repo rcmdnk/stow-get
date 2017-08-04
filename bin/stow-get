@@ -4,8 +4,8 @@
 #
 # Package manager with stow.
 #
-STOW_GET_VERSION=v0.0.26
-STOW_GET_DATE="3/Aug/2017"
+STOW_GET_VERSION=v0.0.27
+STOW_GET_DATE="5/Aug/2017"
 #
 # }}}
 
@@ -300,7 +300,7 @@ function check_include { # {{{
   IFS=$IFS_ORIG
   local f="${1}"
   for d in "${pathes[@]}";do
-    if [ -f "$d/$f" ];then
+    if [ -a "$d/$f" ];then
       if [ "$2" = 1 ];then
         echo "$d/$f"
       elif [ "$2" = 2 ];then
@@ -431,6 +431,7 @@ function init_tarball { ## {{{
       if [ "$configure" != "" ];then
         if [ "$dryrun" -eq 0 ];then
           if [ -f "$configure" ];then
+            echo $ $configure_flags $configure --prefix="$stow_dir/$target" $configure_options
             eval $configure_flags $configure --prefix="$stow_dir/$target" $configure_options
           fi
         else
@@ -443,6 +444,7 @@ function init_tarball { ## {{{
       fi
 
       make_cmd
+      ret=$?
       if [ $ret -ne 0 ];then
         return $ret
       fi
@@ -985,12 +987,12 @@ for package in "${packages[@]}";do
     ret=$?
   fi
   if [ $dryrun -eq 1 ];then
-    printf "$log"
+    echo -e "$log"
   fi
 
   if [ $ret -ne 0 ];then
     if [ "$verbose" -eq 0 ];then
-      printf "$log"
+      echo -e "$log"
     fi
     err "Failed to install $package"
     exit $ret
