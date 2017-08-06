@@ -1,7 +1,7 @@
 os:
   - linux
   - osx
-language: python
+language: ruby
 env:
 #  global:
 #    - MAKEFLAGS="-j 2"
