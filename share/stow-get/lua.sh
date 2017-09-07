@@ -14,7 +14,7 @@ elif [[ "$OSTYPE" =~ bsd ]];then
 fi
 function make_cmd {
   execute make $plathome MYLIBS=" -ltermcap" MYLDFLAGS=" -L$inst_dir/lib" MYCFLAGS=" \
--I$inst_dir/usr/local/include"
+-I$inst_dir/include"
   execute make install INSTALL_TOP="$stow_dir/$target"
 }
 lib_dep=(readline termcap)
