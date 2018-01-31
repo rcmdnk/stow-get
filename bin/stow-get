@@ -4,8 +4,8 @@
 #
 # Package manager with stow.
 #
-STOW_GET_VERSION=v0.0.27
-STOW_GET_DATE="5/Aug/2017"
+STOW_GET_VERSION=v0.0.28
+STOW_GET_DATE="31/Jan/2018"
 #
 # }}}
 
@@ -458,7 +458,12 @@ function init_gnu { ## {{{
 } ## }}}
 
 function init_github { ## {{{
-  tarball=${tarball:-v${version}.tar.gz}
+  if [ $version = HEAD ] || [ $version = master ];then
+    tarball=${tarball:-master.zip}
+    directory=${directory:-${package}-master}
+  else
+    tarball=${tarball:-v${version}.tar.gz}
+  fi
   user=${user:-${package}}
   repository=${repository:-${package}}
   url_prefix=${url_prefix:-https://github.com/$user/$repository/archive}

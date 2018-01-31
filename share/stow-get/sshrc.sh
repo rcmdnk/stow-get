@@ -5,5 +5,4 @@ function make_cmd {
   execute cp sshrc "$stow_dir/$target/bin/"
   execute cp moshrc "$stow_dir/$target/bin/"
 }
-get_version
-tarball=${version}.tar.gz
+version=HEAD
