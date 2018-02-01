@@ -1,5 +1,5 @@
 inst_type=github
-user=Russell91
+user=rcmdnk
 function make_cmd {
   execute mkdir -p "$stow_dir/$target/bin"
   execute cp sshrc "$stow_dir/$target/bin/"
