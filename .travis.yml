@@ -32,6 +32,7 @@ env:
     - PACKAGE=rubygems
     - PACKAGE=screen
     - PACKAGE=sl
+    - PACKAGE=sshrc
     - PACKAGE=stow-get
     - PACKAGE=stow
     - PACKAGE=termcap
