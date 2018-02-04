@@ -145,7 +145,7 @@ function reset_inst_val {
   user=""
   repository=""
   directory=""
-  configure="./configure"
+  configure_file="./configure"
   configure_flags=""
   configure_options=""
   index_for_latest=""
@@ -158,6 +158,11 @@ function reset_inst_val {
   unset stow_install
   function before_configure {
     :
+  }
+  function configure_cmd {
+    if [ -x "$configure_file" ];then
+      execute $configure_flags $configure_file --prefix="$stow_dir/$target" $configure_options
+    fi
   }
   function make_cmd {
     execute make all && execute make install
@@ -428,19 +433,10 @@ function init_tarball { ## {{{
         return $ret
       fi
 
-      if [ "$configure" != "" ];then
-        if [ "$dryrun" -eq 0 ];then
-          if [ -f "$configure" ];then
-            echo $ $configure_flags $configure --prefix="$stow_dir/$target" $configure_options
-            eval $configure_flags $configure --prefix="$stow_dir/$target" $configure_options
-          fi
-        else
-          echo $configure_flags $configure --prefix="$stow_dir/$target" $configure_options
-        fi
-        ret=$?
-        if [ $ret -ne 0 ];then
-          return $ret
-        fi
+      configure_cmd
+      ret=$?
+      if [ $ret -ne 0 ];then
+        return $ret
       fi
 
       make_cmd
@@ -471,7 +467,7 @@ function init_github { ## {{{
 } ## }}}
 
 function init_github_direct { ## {{{
-  configure=""
+  configure_file=""
   function make_cmd {
     execute mkdir -p "$stow_dir"
     execute cp -r . "$stow_dir/$target"
