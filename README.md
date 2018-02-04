@@ -94,14 +94,35 @@ Following parameters can be set as shell script.
 |target_postfix|By default, a package is installed in `$stow_dir/<package>-STOW-<version>`(=`$stow_dir/$target`).<br>If `target_postfix` is defined, a directory name is changed to `<package>-STOW-<target_postfix>`.|`""`|
 |tarball|tarball name.|`<package>-<version>.tar.gz`|
 |url_prefix| URL where tarball file is placed.|For gnu: `http://ftp.gnu.org/gnu/<package>`. <br>For github: `https://github.com/<package>/<package>/archive`|
-|configure|Configure command. Most of packages have `configure` file to be executed first.|`./configure`|
+|configure_file|Configure command. Most of packages have `configure` file to be executed first.|`./configure`|
 |config_options|Options for `configure` command.<br>Note: `--prefix="$stow_dir/$target/"` (where the package substance is installed) option is automatically added if `configure` is executed.|`""`|
-|stow_install|This is function to define how to install the package.<br>If `stow_isntall` is defined, other installation functions (including `before_configure` and `make_cmd`) for each inst_type are ignored.|undefined|
-|before_configure|This is function. Commands executed before `configure`.<br>If `configure` doesn't have `--prefix` but it set prefix in other way, then set `configure=""` and write configure command in `before_configure`.|function before_configure {<br>  :<br>}|
-|make_cmd|This is function for make command.|function make_cmd {<br>  make all && make install<br>}|
-|get_latest|This is function to get the latest version of the package. It is used if `version` is not specified, or `latest` command is executed. |Only `gnu` type has default method.|
 |bin_dep|Array of depending executable packages.<br>If the package and executable are the same name, just put the name. Otherwise put `<exe>_package_<package>`.<br>e.g. `lib_dep=(my-exe exe-name_package_package-name)`|`()`|
 |lib_dep|Array of depending library packages.<br>If the library file has such `lib<package>.so`, just put the package name. Otherwise put `<lib>_package_<package>`.<br>e.g. `lib_dep=(my-lib lib-name_package_package-name)`|`()`|
+
+Followings are function which can be re-assigned in each package configuration file:
+
+|Parameter|Description|Default|
+|:-:|:-|:-|
+|stow_install|A function to define how to install the package.<br>If `stow_isntall` is defined, other installation functions (including `before_configure` and `make_cmd`) for each inst_type are ignored.|undefined|
+|before_configure|A function which has command list to be executed before `configure`. (Use for such `./autogen.sh`)|function before_configure {<br>  :<br>}|
+|configure_cmd|A function for configure command. <br>If `configure` doesn't have `--prefix` but it set prefix in other way, then change this function to give proper arguments.|function configure_cmd {<br>  if [ -x "$configure_file" ];then<br>    execute $configure_flags $configure_file --prefix="$stow_dir/$target" $configure_options<br>  fi<br>}}|
+|make_cmd|Make commands.|function make_cmd {<br>  execute make all && execute make install<br>}|
+|get_latest|A function to get the latest version of the package. It is used if `version` is not specified, or `latest` command is executed. |Only `gnu` type has default method.|
+
+For these functions, give commands to `execute` function,
+to enable dry run mode.
+
+```sh
+function execute {
+  if [ $dryrun -eq 1 ];then
+    echo  "$@"
+  else
+    echo  "$" "$@"
+    eval "$@"
+  fi
+  ret=$?
+}
+```
 
 ### `inst_type`
 
