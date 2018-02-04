@@ -476,7 +476,7 @@ function get_index_latest { ## {{{
   local url="${1}/?C=M;O=A"
   local output_detail="${2:-0}"
   local html="$(get_page "$url")"
-  local latest="$(echo "$html"|grep "$package"|grep ".tar.gz<"|grep -v "\-doc\-"|grep -v latest|tail -n1)"
+  local latest="$(echo "$html"|grep "$package"|grep ".tar.gz<"|grep -v "\\-doc\\-"|grep -v latest|tail -n1)"
   local params=$(echo "$latest"|sed 's/<[^>]*>/ /g')
   if [ "$params" = "" ];then
     err "Failed to get the latest version of $package from $url"
@@ -528,7 +528,7 @@ function get_github_latest { ## {{{
     version=$(echo "$html"|grep css-truncate-target|head -n1|cut -d ">" -f2 |cut -d"<" -f1|sed 's/^v//')
     if [ "$version" != "" ];then
       info="The latest release published on: $(echo "$html"|grep -A1 "released this"|head -n1|cut -d">" -f2|cut -d"<" -f1)"
-      local tarballtmp=$(echo "$html"|grep href|grep "tar.gz"|grep "$version"|head -n1|cut -d'"' -f2)
+      local tarballtmp=$(echo "$html"|grep "Source code</strong> (tar.gz)" -B2|head -n1|cut -d '"' -f2)
       if [ -n "$tarballtmp" ];then
         tarball=$(echo "$tarballtmp"|awk '{n=split($0, tmp, "/")}{print tmp[n]}')
         url_prefix=$(echo "$tarballtmp"|sed "s|/$tarball||")
@@ -917,7 +917,7 @@ function mylog {
   if [ "$verbose" -eq 1 ];then
     "$@"
   else
-    log="${log}$("$@" 2>&1)\n"
+    log="${log}$("$@" 2>&1)\\n"
   fi
 }
 
@@ -964,7 +964,7 @@ for package in "${packages[@]}";do
   # Install
   mylog  stow_install_wrapper
   if [ $ret -eq 0 ];then
-    log="${log}# stow installation\n"
+    log="${log}# stow installation\\n"
     mylog add_package
     ret=$?
   fi
