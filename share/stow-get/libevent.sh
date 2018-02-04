@@ -1,7 +1,8 @@
 inst_type=github
 lib_dep=(openssl)
 get_version
-directory=${package}-${version#release-}
+tarball=${tarball/release/libevent/}
+directory=${tarball%.tar.gz}
 openssl_path=$(which openssl 2>/dev/null)
 if [ -n "$openssl_path" ];then
   openssl_dir="${openssl_path%/bin/openssl}"
