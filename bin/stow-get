@@ -85,11 +85,13 @@ Sub commands:
    uninstall [package [package...]]
                   Remove packages.
    rm/remove      Aliases of uninstall.
+   unlink [package [Package...]]
+                  Like uninstall, but remain files. (install will be done w/o download codes.)
    upgrade/update [package [package...]]
                   Upgrade packages (all packages in the list if no package is given).
    list           List up installed packages.
    packages       List up available packages which have configuration files.
-   clean/cleanup        Clean up old packages
+   clean/cleanup  Clean up old packages
    info <package> Show configuration file of package.
    latest <package>
                   Show the latest version of package.
@@ -610,7 +612,7 @@ function get_list { ## {{{
 
 # Check argumetns {{{
 
-COMMANDS=(commands install reinstall rm remove uninstall update upgrade list packages clean cleanup info latest version license help)
+COMMANDS=(commands install reinstall rm remove uninstall unlink update upgrade list packages clean cleanup info latest version license help)
 NEED_ARGS=(commands uninstall info latest)
 
 if [ "$#" -eq 0 ] || [ "$1" = "help" ] || [ "$1" = "-h" ];then
@@ -628,15 +630,19 @@ if ! echo " ${COMMANDS[*]} "|grep -q " $1 ";then
   err "Unknown command: $1"
   exit $EXIT_UNKNOWN_COMMAND
 fi
-command=$1
+cmd=$1
 shift
-if [ "$command" = "rm" ] || [ "$command" = "remove" ];then
-  command="uninstall"
+if [ "$cmd" = "rm" ] || [ "$cmd" = "remove" ];then
+  cmd="uninstall"
 fi
-if [ "$command" = "reinstall" ];then
+if [ "$cmd" = "uninstall" ];then
+  cleanup=1
+  cmd=unlink
+fi
+if [ "$cmd" = "reinstall" ];then
   force=1
 fi
-if [ "$command" = "commands" ];then
+if [ "$cmd" = "cmd" ];then
   dryrun=1
 fi
 
@@ -646,7 +652,6 @@ while getopts c:d:i:t:CfDVvlh OPT;do
     "d" ) conf_dir=(${OPTARG/,/ } "${conf_dir[@]}");;
     "i" ) set_inst_dir "$OPTARG" ;;
     "t" ) default_inst_type="$OPTARG" ;;
-    "C" ) cleanup=1 ;;
     "f" ) force=1 ;;
     "D" ) dryrun=1 ;;
     "V" ) verbose=1 ;;
@@ -668,11 +673,11 @@ fi
 if [ "$#" -ne 0 ];then
   packages=("$@")
 else
-  if echo " ${NEED_ARGS[*]} "|grep -q " $command ";then
-    err "Need <package> argument for $command command."
+  if echo " ${NEED_ARGS[*]} "|grep -q " $cmd ";then
+    err "Need <package> argument for $cmd command."
     exit $EXIT_NO_PACKAEGE
   fi
-  if [ "$command" = "upgrade" ] || [ "$command" = "update" ];then
+  if [ "$cmd" = "upgrade" ] || [ "$cmd" = "update" ];then
     packages=($(get_list))
   fi
 fi
@@ -736,7 +741,7 @@ fi
 # }}}
 
 # Latest {{{
-if [ "$command" = "latest" ];then
+if [ "$cmd" = "latest" ];then
   packages=("$@")
   for package in "$@";do
     source_pac_conf
@@ -747,7 +752,7 @@ fi
 # }}}
 
 # Info {{{
-if [ "$command" = "info" ];then
+if [ "$cmd" = "info" ];then
   verbose=1
   for package in "${packages[@]}";do
     get_pac_conf "$package" 1
@@ -761,7 +766,7 @@ fi
 # }}}
 
 # List {{{
-if [ "$command" = "list" ];then
+if [ "$cmd" = "list" ];then
   pac_list=$(get_list)
   if [ -t 1 ];then
     echo "$pac_list"|column
@@ -773,7 +778,7 @@ fi
 # }}}
 
 # Packages {{{
-if [ "$command" = "packages" ];then
+if [ "$cmd" = "packages" ];then
   for d in "${conf_dir[@]}";do
     conf_list=$(get_file_list "$d" "*.sh"|sed 's/.sh$//')
     if [ -t 1 ];then
@@ -787,7 +792,7 @@ fi
 # }}}
 
 # Clean up {{{
-if [ "$command" = "cleanup" ] || [ "$command" = "clean" ];then
+if [ "$cmd" = "cleanup" ] || [ "$cmd" = "clean" ];then
   cleanup=1
   cleanup_package
   exit
@@ -798,13 +803,13 @@ fi
 necessary_packages=(stow)
 for p in "${necessary_packages[@]}";do
   if ! check_bin "$p";then
-    packages=($p "${packages[@]}")
+    packages=("$p" "${packages[@]}")
   fi
 done
 # }}}
 
-# Uninstall {{{
-if [ "$command" = "uninstall" ];then
+# Unlink/Uninstall {{{
+if [ "$cmd" = "unlink" ];then
   for package in "${packages[@]}";do
     source_pac_conf
     banner "Uninstalling ${package}"
@@ -929,7 +934,7 @@ for package in "${packages[@]}";do
     export PATH=$stow_dir/$target/bin:$PATH
   fi
 
-  if [ "$command" != "commands" ];then
+  if [ "$cmd" != "commands" ];then
     banner "Installing $stow_dir/$target"
     if [ -d "$stow_dir/$target" ];then
       banner_v "$target was already installed."
