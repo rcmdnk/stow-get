@@ -120,16 +120,18 @@ function execute {
     echo  "$@"
   else
     echo  "$" "$@"
-    "$@"
+    eval "$@"
   fi
+  ret=$?
+  return $ret
 }
 function execute_patch {
-  if [ "$dryrun" -eq 1 ];then
-    echo "patch -p2 < $1"
-  else
-    echo "$ patch -p2 < $1"
-    patch -p2 < "$1"
+  f=$1
+  depth=1
+  if [ $# -gt 1 ];then
+    depth=$2
   fi
+  execute "patch -p$depth < \"$f\""
 }
 # }}}
 
@@ -198,7 +200,7 @@ function show_version { ## {{{
 
 function banner { ## {{{
   echo "################################################################################"
-  echo "# $@"
+  echo "# $*"
   echo "################################################################################"
 } ## }}}
 
@@ -224,15 +226,15 @@ function err { ## {{{
 function cd_check { ## {{{
   dir="$1"
   no_exit="$2"
-  if [ -n "$1" ];then
+  if [ -z "$dir" ];then
+    err "dir is empty for cd_check."
+    ret=1
+  else
     execute cd "$dir"
     ret=$?
     if [ "$ret" -ne 0 ];then
       err "can not cd to $dir."
     fi
-  else
-    err "dir is empty for cd_check."
-    ret=1
   fi
   if [ $ret != 0 ] && [ "$no_exit" = "" ];then
     exit $EXIT_CD_FAIL
@@ -372,7 +374,6 @@ function cleanup_package { # {{{
 
 function get_tarball  { # {{{
   download "$1"
-  ret=$?
   if [ $ret -ne 0 ];then
     return $ret
   fi
@@ -400,47 +401,34 @@ function init_tarball { ## {{{
   if ! check_bin stow_install;then
     function stow_install {
       get_tarball "$url_prefix/$tarball"
-      ret=$?
       if [ $ret -ne 0 ];then
         return $ret
       fi
 
       cd_check "$directory" 1
-      ret=$?
       if [ $ret -ne 0 ];then
         directory=$(find . -type d -maxdepth 1 -mindepth 1 -name "*$version*"|head -n1)
-        if [ -n "$dir" ];then
+        cd_check "$directory" 1
+        if [ $ret -ne 0 ];then
+          directory=$(find . -type d -maxdepth 1 -mindepth 1 -name "*$package*"|head -n1)
           cd_check "$directory" 1
-          ret=$?
           if [ $ret -ne 0 ];then
-            directory=$(find . -type d -maxdepth 1 -mindepth 1 -name "*$package*"|head -n1)
-            if [ -n "$dir" ];then
-              cd_check "$directory" 1
-              ret=$?
-              if [ $ret -ne 0 ];then
-                return $ret
-              fi
-            else
-              return 1
-            fi
+            return $ret
           fi
         fi
       fi
 
       before_configure
-      ret=$?
       if [ $ret -ne 0 ];then
         return $ret
       fi
 
       configure_cmd
-      ret=$?
       if [ $ret -ne 0 ];then
         return $ret
       fi
 
       make_cmd
-      ret=$?
       if [ $ret -ne 0 ];then
         return $ret
       fi
@@ -469,18 +457,13 @@ function init_github { ## {{{
 function init_github_direct { ## {{{
   configure_file=""
   function make_cmd {
-    execute mkdir -p "$stow_dir"
-    execute cp -r . "$stow_dir/$target"
+    execute mkdir -p "$stow_dir" && execute cp -r . "$stow_dir/$target"
   }
   init_github
 } ## }}}
 
 function stow_install_wrapper { ## {{{
-  if [ $dryrun -eq 1 ];then
-    echo "cd \"\$TMP_DIR\""
-  else
-    cd "$TMP_DIR"
-  fi
+  cd_check "$TMP_DIR"
 
   if ! check_bin stow_install;then
     err "stow_install function is not set."
@@ -554,10 +537,10 @@ function get_github_latest { ## {{{
       version=$(echo "$html"|grep tag-name|head -n1|cut -d ">" -f2 |cut -d"<" -f1|sed 's/^v//')
       info="The latest tag committed on: $(echo "$html"|grep "relative-time"|head -n1|cut -d">" -f2|cut -d"<" -f1)"
       local tarballtmp=$(echo "$html"|grep href|grep "tar.gz"|grep "$version"|head -n1|cut -d'"' -f2)
-      if [ -n "$tarballtmp" ];then
-        tarball=$(echo "$tarballtmp"|awk '{n=split($0, tmp, "/")}{print tmp[n]}')
-        url_prefix=$(echo "$tarballtmp"|sed "s|/$tarball||")
-      fi
+    fi
+    if [ -n "$tarballtmp" ];then
+      tarball=$(echo "$tarballtmp"|awk '{n=split($0, tmp, "/")}{print tmp[n]}')
+      url_prefix=$(echo "$tarballtmp"|sed "s|/$tarball||")
     fi
   fi
   if [ -n "$url_prefix" ] && ! echo "$url_prefix"|grep -q http;then
@@ -599,7 +582,6 @@ function add_package { ## {{{
   # Ignore share/info/dir which causes a conflict sometime.
   cd_check "$stow_dir"
   execute stow --ignore="share/info/dir" --ignore=".travis.yml" "$target"
-  ret=$?
   if [ $ret -ne 0 ];then
     err "Failed to place pacakge:${target%%-STOW*} by stow."
     exit $ret
@@ -981,7 +963,6 @@ for package in "${packages[@]}";do
 
   # Install
   mylog  stow_install_wrapper
-  ret=$?
   if [ $ret -eq 0 ];then
     log="${log}# stow installation\n"
     mylog add_package
