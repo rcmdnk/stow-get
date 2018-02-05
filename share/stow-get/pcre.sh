@@ -1,7 +1,7 @@
 inst_type=tarball
 url_prefix=https://ftp.pcre.org/pub/pcre
 configure_options="--enable-utf --enable-unicode-properties"
-function get_latest {
+get_latest () {
   local output_detail="${1:-0}"
   local params="$(get_page $url_prefix/|grep "tar.gz<"|grep pcre-8.|tail -n1)"
   version="$(echo "$params"|cut -d'"' -f2|cut -d '-' -f2|cut -d'.' -f1-2)"

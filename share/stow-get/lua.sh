@@ -12,12 +12,12 @@ elif [[ "$OSTYPE" =~ solaris ]];then
 elif [[ "$OSTYPE" =~ bsd ]];then
   plathome=freebsd
 fi
-function make_cmd {
+make_cmd () {
   execute make $plathome MYLIBS=\" -ltermcap\" MYLDFLAGS=\" -L$inst_dir/lib\" MYCFLAGS=\" -I$inst_dir/include\"
   execute make install INSTALL_TOP=\"$stow_dir/$target\"
 }
 lib_dep=(readline termcap)
-function get_latest {
+get_latest () {
   local output_detail="${1:-0}"
   local params="$(get_page http://www.lua.org/ftp/|grep "\"name\"" -A1 | grep lua -A1|grep ".tar.gz<" -A1|head -n2)"
   version="$(echo "$params"|head -n1|cut -d'"' -f4|sed 's/lua-//'|sed 's/.tar.gz//')"

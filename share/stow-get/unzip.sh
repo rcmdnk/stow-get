@@ -1,12 +1,12 @@
 inst_type=tarball
 url_prefix=ftp://ftp.info-zip.org/pub/infozip/src
-function make_cmd {
+make_cmd () {
   execute cp ./unix/Makefile .
   execute make generic
   execute mkdir -p "$stow_dir/$target/bin/"
   execute cp unzip "$stow_dir/$target/bin/"
 }
-function get_latest {
+get_latest () {
   local output_detail="${1:-0}"
   local params="$(get_page http://www.info-zip.org/mans/unzip.html|grep "INDENTATION" -B10|tail -n11)"
   version="$(echo "$params"|sed -n 1p|cut -d v -f2|cut -d "<" -f1)"

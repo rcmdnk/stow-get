@@ -1,4 +1,4 @@
-python_version=2
+python_version=3
 inst_type=tarball
 configure_options="--enable-unicode=ucs4 --enable-shared"
 get_latest () {

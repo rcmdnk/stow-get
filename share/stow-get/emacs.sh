@@ -24,7 +24,7 @@ fi
 if [ -n "$_LDFLAGS" ];then
   configure_options="$configure_options LDFLAGS=\"$_LDFLAGS\""
 fi
-function make_cmd {
+make_cmd () {
   execute make all
   if [ $ret -ne 0 ];then
     # Try to build with CANNOT_DUMP=yes

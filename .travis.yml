@@ -28,6 +28,7 @@ env:
     - PACKAGE=pkg-config
     - PACKAGE=protobuf
     - PACKAGE=python
+    - PACKAGE=python3
     - PACKAGE=readline
     - PACKAGE=rubygems
     - PACKAGE=screen

@@ -196,34 +196,41 @@ See more examples in [stow-get/share/stow-get](https://github.com/rcmdnk/stow-ge
 ## Help
 
     Usage: stow-get <sub command> [-fDVvh] [-c <conf file>] [-d <conf dir>] [-i <inst dir> ] [-t <inst type>] [package [package [...]]]
-    
+
     Sub commands:
        install [package [package...]]
                       Install packages (all packages in the configuration file if no package is given).
-       uninstall <package>
-                      Remove package.
+       reinstall [package [package...]]
+                      Reinstall packages (same as 'install -f')
+       uninstall [package [package...]]
+                      Remove packages.
        rm/remove      Aliases of uninstall.
+       unlink [package [Package...]]
+                      Like uninstall, but remain files. (install will be done w/o download codes.)
        upgrade/update [package [package...]]
                       Upgrade packages (all packages in the list if no package is given).
        list           List up installed packages.
        packages       List up available packages which have configuration files.
-       clean/cleanup        Clean up old packages
+       clean/cleanup  Clean up old packages
        info <package> Show configuration file of package.
        latest <package>
                       Show the latest version of package.
        version        Show version.
+       license        Show license.
        help           Show this help.
-    
+
     Arguments:
        -c <conf file> Configuration file (default: $HOME/.stow-get).
-       -d <conf dir>  Additional directory of package configuration files (default: $HOME/tmp/stow-get/bin/../share/stow-get).
+       -d <conf dir>  Additional directory of package configuration files (default: $HOME/usr/local/share/stow-get).
                       Multi directories can be specified by separating with ",".
        -i <inst dir>  Directory to install packages (default: $HOME/usr/local).
        -t <inst type> Set install type (default: gnu).
-       -f             Force to re-install.
+       -f             Force to reinstall.
        -D             Dry run mode.
        -V             Verbose mode.
        -v             Show version.
+       -l             Show license.
        -h             Show this help.
-    
+
     See more details at: https://github.com/rcmdnk/stow-get
+

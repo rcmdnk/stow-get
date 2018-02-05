@@ -1,5 +1,5 @@
 inst_type=tarball
-function make_cmd {
+make_cmd () {
   if [[ "$OSTYPE" =~ darwin ]];then
     execute make
   else
@@ -7,7 +7,7 @@ function make_cmd {
   fi
   execute make install PREFIX="$stow_dir/$target"
 }
-function get_latest {
+get_latest () {
   local output_detail="${1:-0}"
   local params="$(get_page http://www.bzip.org|grep "current version is")"
   version="$(echo "$params"|cut -d ">" -f 3|cut -d "<" -f1)"

@@ -32,7 +32,7 @@ if check_bin pcretest;then
 else
   bin_dep=(pcre ${bin_dep[@]})
 fi
-function get_latest {
+get_latest () {
   local output_detail="${1:-0}"
   local version_top="$(get_page "$url_top/?C=M;O=A"|grep "folder.png"|tail -n1|cut -d'"' -f 6|cut -d '/' -f1)"
   if [ -z "$version_top" ];then

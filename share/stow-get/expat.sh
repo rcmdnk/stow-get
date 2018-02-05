@@ -2,7 +2,7 @@ inst_type=tarball
 # temporarily, 2.2.2 can't be compiled at old linux?
 # 2.2.1 started to fail at mac (~Dec/2017, hight sierra)
 version_safe=2.2.5
-function get_latest {
+get_latest () {
   local output_detail="${1:-0}"
   local params="$(get_page https://libexpat.github.io/|grep -v Changelog|grep "Changes" -B1|head -n2)"
   version="$(echo "$params"|tail -n1|cut -d "/" -f 7|sed 's/^R_//'|sed 's/_/./g')"

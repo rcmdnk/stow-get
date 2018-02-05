@@ -1,7 +1,7 @@
 inst_type=gnu
 bin_dep=(automake autoconf)
 lib_dep=(ncurses)
-function before_configure {
+before_configure () {
   if [[ "$OSTYPE" =~ darwin ]];then
     download https://gist.githubusercontent.com/yujinakayama/4608863/raw/75669072f227b82777df25f99ffd9657bd113847/gistfile1.diff
     execute_patch  gistfile1.diff 2

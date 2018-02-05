@@ -11,7 +11,7 @@ bin_dep=(autopoint_package_gettext)
 #    break
 #  fi
 #done
-function before_configure {
+before_configure () {
   execute ./autogen.sh
 }
 if [ "$UID" -ne 0 ];then

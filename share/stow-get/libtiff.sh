@@ -1,6 +1,6 @@
 inst_type=tarball
 url_prefix=ftp://download.osgeo.org/libtiff
-function get_latest {
+get_latest () {
   local output_detail="${1:-0}"
   local params="$(get_page http://libtiff.maptools.org/)"
   version="$(echo "$params"|get_page http://libtiff.maptools.org/|grep "Latest Stable Release" -A1 | grep href|grep href|head -n1|cut -d ">" -f3|cut -d "<" -f1|sed 's/v//g')"

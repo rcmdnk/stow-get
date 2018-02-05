@@ -2,10 +2,10 @@ inst_type=github
 user=mobile-shell
 bin_dep=(automake autoconf)
 lib_dep=(protobuf ncurses)
-function before_configure {
+before_configure () {
   execute ./autogen.sh
 }
-function get_latest {
+get_latest () {
   local output_detail="${1:-0}"
   get_github_latest 0
   version="${version#mosh-}"

@@ -5,7 +5,7 @@ openssl_version=${openssl_version:-1_1}
 configure_file="./config"
 configure_opstions="--openssldir="$stow_dir/$target/ssl
 
-function get_latest {
+get_latest () {
   local output_detail="${1:-0}"
   local url="https://github.com/openssl/openssl/releases"
   local html="$(get_page "$url")"

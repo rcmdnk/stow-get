@@ -1,5 +1,5 @@
 inst_type=github
-function before_configure {
+before_configure () {
   execute make configure
 }
 bin_dep=(autoconf)

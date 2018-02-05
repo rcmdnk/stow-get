@@ -4,8 +4,8 @@
 #
 # Package manager with stow.
 #
-STOW_GET_VERSION=v0.0.28
-STOW_GET_DATE="31/Jan/2018"
+STOW_GET_VERSION=v0.2.1
+STOW_GET_DATE="14/Feb/2018"
 #
 # }}}
 
@@ -52,13 +52,13 @@ EXIT_INVALID_INST_TYPE=125
 # }}}
 
 # Default variables {{{
-function set_inst_dir {
+set_inst_dir () { # {{{
   inst_dir="$1"
   stow_dir="$inst_dir/stow"
   current_dir="$stow_dir/current"
-}
+} # }}}
 
-function set_default {
+set_default () { # {{{
   set_inst_dir "$HOME/usr/local"
   script_dir=$(cd "$(dirname "$0")";pwd)
   conf_dir=("$script_dir/../share/stow-get")
@@ -69,13 +69,13 @@ function set_default {
   dryrun=0
   packages=()
   verbose=0
-}
+} # }}}
 set_default
 # }}}
 
 # HELP {{{
 HELP="
-Usage: stow-get <sub command> [-fDVvh] [-c <conf file>] [-d <conf dir>] [-i <inst dir> ] [-t <inst type>] [package [package [...]]]
+Usage: stow-get <sub command> [-fDVvh] [-c <conf file>] [-d <conf dir>] [-i <inst dir> ] [-o <options>] [-t <inst type>] [package [package [...]]]
 
 Sub commands:
    install [package [package...]]
@@ -104,6 +104,7 @@ Arguments:
    -d <conf dir>  Additional directory of package configuration files (default: ${conf_dir[*]}).
                   Multi directories can be specified by separating with \",\".
    -i <inst dir>  Directory to install packages (default: $inst_dir).
+   -o <options>   Additional options for installation, which is used for ./configure in most of caes.)
    -t <inst type> Set install type (default: $default_inst_type).
    -f             Force to reinstall.
    -D             Dry run mode.
@@ -117,7 +118,7 @@ See more details at: https://github.com/rcmdnk/stow-get
 # }}}
 
 # execute {{{
-function execute {
+execute () { # {{{
   if [ $dryrun -eq 1 ];then
     echo  "$@"
   else
@@ -126,19 +127,19 @@ function execute {
   fi
   ret=$?
   return $ret
-}
-function execute_patch {
+} # }}}
+execute_patch () { # {{{
   f=$1
   depth=1
   if [ $# -gt 1 ];then
     depth=$2
   fi
   execute "patch -p$depth < \"$f\""
-}
+} # }}}
 # }}}
 
 # Global variables for installation {{{
-function reset_inst_val {
+reset_inst_val () { # () {{{
   version=""
   version_safe=""
   inst_type=""
@@ -151,8 +152,10 @@ function reset_inst_val {
   directory=""
   configure_file="./configure"
   configure_flags=""
+  user_options=""
   configure_options=""
   index_for_latest=""
+  stow_option=""
 
   bin_dep=()
   lib_dep=()
@@ -160,18 +163,18 @@ function reset_inst_val {
 
 
   unset stow_install
-  function before_configure {
+  before_configure () {
     :
   }
-  function configure_cmd {
+  configure_cmd () {
     if [ -x "$configure_file" ];then
-      execute $configure_flags $configure_file --prefix="$stow_dir/$target" $configure_options
+      execute $configure_flags $configure_file --prefix="$stow_dir/$target" $user_options $configure_options
     fi
   }
-  function make_cmd {
+  make_cmd () {
     execute make all && execute make install
   }
-  function get_latest {
+  get_latest () {
     if [ "$index_for_latest" != "" ];then
       get_index_latest "$index_for_latest" "$@"
     elif [ "$inst_type" = "gnu" ];then
@@ -190,42 +193,42 @@ function reset_inst_val {
       return $EXIT_NO_VERSION
     fi
   }
-}
+} # }}}
 reset_inst_val
 # }}}
 
 # functions {{{
 
-function show_version { ## {{{
+show_version () { ## {{{
   echo "$(basename "$0") $STOW_GET_VERSION $STOW_GET_DATE"
 } ## }}}
 
-function banner { ## {{{
+banner () { ## {{{
   echo "################################################################################"
   echo "# $*"
   echo "################################################################################"
 } ## }}}
 
-function banner_v { ## {{{
+banner_v () { ## {{{
   if [ $verbose -eq 1 ];then
     banner "$@"
   fi
 } ## }}}
 
-function warn { ## {{{
+warn () { ## {{{
   printf "\e[33m"
   banner "WARNING: $*"
   printf "\e[m"
 } ## }}}
 
-function err { ## {{{
+err () { ## {{{
   printf "\e[31m" 1>&2
   banner "ERROR: $*" 1>&2
   printf "\e[m" 1>&2
   return 1
 } ## }}}
 
-function cd_check { ## {{{
+cd_check () { ## {{{
   dir="$1"
   no_exit="$2"
   if [ -z "$dir" ];then
@@ -244,7 +247,7 @@ function cd_check { ## {{{
   return $ret
 } ## }}}
 
-function get_pac_conf { ## {{{
+get_pac_conf () { ## {{{
   conf_name="${1}.sh"
   is_exit="${2:-0}"
   pac_conf=""
@@ -264,7 +267,7 @@ function get_pac_conf { ## {{{
   fi
 } ## }}}
 
-function check_bin { ## {{{
+check_bin () { ## {{{
   type "$1" >/dev/null 2>&1
   local ret=$?
   if [ "$ret" -eq 0 ];then
@@ -277,7 +280,7 @@ function check_bin { ## {{{
   return $ret
 } ## }}}
 
-function check_lib { # {{{
+check_lib () { # {{{
   IFS_ORIG=$IFS
   IFS=$'\n'
   pathes=(${LD_LIBRARY_PATH//:/$'\n'})
@@ -302,7 +305,7 @@ function check_lib { # {{{
   return 1
 } # }}}
 
-function check_include { # {{{
+check_include () { # {{{
   IFS_ORIG=$IFS
   IFS=$'\n'
   pathes=($(echo "${LD_LIBRARY_PATH//:/$'\n'}"|sed 's|/lib64|/include|g'|sed 's|/lib|/include|g'))
@@ -321,7 +324,7 @@ function check_include { # {{{
   return 1
 } # }}}
 
-function source_pac_conf { ## {{{
+source_pac_conf () { ## {{{
   reset_inst_val
   get_pac_conf "$package"
   if [ "$pac_conf" != "" ];then
@@ -342,7 +345,7 @@ function source_pac_conf { ## {{{
   eval init_"$inst_type"
 } ## }}}
 
-function get_version { # {{{
+get_version () { # {{{
   if [ "$version" = "" ] || [ "$version" = "latest" ];then
     get_latest
     ret=$?
@@ -360,7 +363,7 @@ Use safe version $version_safe" 1>&2
   fi
 } # }}}
 
-function cleanup_package { # {{{
+cleanup_package () { # {{{
   [ "$cleanup" = 0 ] && return
   local target_tmp=$target
   local current_list=$(get_file_list "$current_dir" "*-STOW-*")
@@ -374,29 +377,29 @@ function cleanup_package { # {{{
   target=$target_tmp
 } # }}}
 
-function get_tarball  { # {{{
+get_tarball  () { # {{{
   download "$1"
   if [ $ret -ne 0 ];then
     return $ret
   fi
   if echo "$1"|grep -q "tar.gz$";then
     execute tar zxf "${1##*/}"
-  elif echo $tarball|grep -q "tgz$";then
+  elif echo "$1"|grep -q "tgz$";then
     execute tar zxf "${1##*/}"
-  elif echo $tarball|grep -q "tar.xz$";then
+  elif echo "$1"|grep -q "tar.xz$";then
     execute tar Jxf "${1##*/}"
-  elif echo $tarball|grep -q "tar.bz2$";then
+  elif echo "$1"|grep -q "tar.bz2$";then
     execute tar jxf "${1##*/}"
-  elif echo $tarball|grep -q "tar.Z$";then
+  elif echo "$1"|grep -q "tar.Z$";then
     execute tar zxf "${1##*/}"
-  elif echo $tarball|grep -q "tar$";then
+  elif echo "$1"|grep -q "tar$";then
     execute tar xf "${1##*/}"
-  elif echo $tarball|grep -q "zip$";then
+  elif echo "$1"|grep -q "zip$";then
     execute unzip "${1##*/}"
   fi
 } # }}}
 
-function init_tarball { ## {{{
+init_tarball () { ## {{{
   directory=${directory:-${package}-${version}}
   tarball=${tarball:-${directory}.tar.gz}
 
@@ -438,12 +441,12 @@ function init_tarball { ## {{{
   fi
 } ## }}}
 
-function init_gnu { ## {{{
+init_gnu () { ## {{{
   url_prefix=${url_prefix:-http://ftp.gnu.org/gnu/$package}
   init_tarball
 } ## }}}
 
-function init_github { ## {{{
+init_github () { ## {{{
   if [ $version = HEAD ] || [ $version = master ];then
     tarball=${tarball:-master.zip}
     directory=${directory:-${package}-master}
@@ -456,7 +459,7 @@ function init_github { ## {{{
   init_tarball
 } ## }}}
 
-function init_github_direct { ## {{{
+init_github_direct () { ## {{{
   configure_file=""
   function make_cmd {
     execute mkdir -p "$stow_dir" && execute cp -r . "$stow_dir/$target"
@@ -464,7 +467,7 @@ function init_github_direct { ## {{{
   init_github
 } ## }}}
 
-function stow_install_wrapper { ## {{{
+stow_install_wrapper () { ## {{{
   cd_check "$TMP_DIR"
 
   if ! check_bin stow_install;then
@@ -474,7 +477,7 @@ function stow_install_wrapper { ## {{{
   stow_install
 } ## }}}
 
-function get_index_latest { ## {{{
+get_index_latest () { ## {{{
   local url="${1}/?C=M;O=A"
   local output_detail="${2:-0}"
   local html="$(get_page "$url")"
@@ -490,11 +493,17 @@ function get_index_latest { ## {{{
   fi
 } ## }}}
 
-function get_gnu_latest { ## {{{
+get_gnu_latest () { ## {{{
   get_index_latest "http://ftp.gnu.org/gnu/$package" "$@"
 } ## }}}
 
-function get_github_latest { ## {{{
+get_tarballtmp_at_api_limit () { ## {{{
+  local html="$1"
+  local version="$2"
+  echo "$html"|grep "Source code</strong> (tar.gz)" -B2|head -n1|cut -d '"' -f2
+}
+
+get_github_latest () { ## {{{
   user=${user:-${package}}
   repository=${repository:-${package}}
   local output_detail="${1:-0}"
@@ -530,7 +539,7 @@ function get_github_latest { ## {{{
     version=$(echo "$html"|grep css-truncate-target|head -n1|cut -d ">" -f2 |cut -d"<" -f1|sed 's/^v//')
     if [ "$version" != "" ];then
       info="The latest release published on: $(echo "$html"|grep -A1 "released this"|head -n1|cut -d">" -f2|cut -d"<" -f1)"
-      local tarballtmp=$(echo "$html"|grep "Source code</strong> (tar.gz)" -B2|head -n1|cut -d '"' -f2)
+      local tarballtmp=$(get_tarballtmp_at_api_limit "$html" "$version")
       if [ -n "$tarballtmp" ];then
         tarball=$(echo "$tarballtmp"|awk '{n=split($0, tmp, "/")}{print tmp[n]}')
         url_prefix=$(echo "$tarballtmp"|sed "s|/$tarball||")
@@ -553,11 +562,11 @@ function get_github_latest { ## {{{
   fi
 } ## }}}
 
-function get_github_direct_latest { ## {{{
+get_github_direct_latest () { ## {{{
   get_github_latest "$@"
 } ## }}}
 
-function xargs_wrapper { ## {{{
+xargs_wrapper () { ## {{{
   if [ -z "$xargs_opt" ] && [ "${xargs_opt-A}" = "A" ];then
     if echo|xargs -r >/dev/null 2>&1;then
       xargs_opt="-r"
@@ -568,22 +577,22 @@ function xargs_wrapper { ## {{{
   xargs $xargs_opt "$@"
 } ## }}}
 
-function get_file_dir_list { ## {{{
+get_file_dir_list () { ## {{{
   find "$1" -maxdepth 1 -mindepth 1 -name "$2" -print0 2>/dev/null|xargs_wrapper -0 -n1 basename
 } ## }}}
 
-function get_file_list { ## {{{
+get_file_list () { ## {{{
   find "$1" -maxdepth 1 -mindepth 1 -type f -name "$2" -print0 2>/dev/null|xargs_wrapper -0 -n1 basename
 } ## }}}
 
-function get_dir_list { ## {{{
+get_dir_list () { ## {{{
   find "$1" -maxdepth 1 -mindepth 1 -type d -name "$2" -print0 2>/dev/null|xargs_wrapper -0 -n1 basename
 } ## }}}
 
-function add_package { ## {{{
-  # Ignore share/info/dir which causes a conflict sometime.
+add_package () { ## {{{
+  # defer share/info/dir which causes a conflict sometime.
   cd_check "$stow_dir"
-  execute stow --ignore="share/info/dir" --ignore=".travis.yml" "$target"
+  execute stow $stow_option --defer="share/info/dir" --ignore=".travis.yml" "$target"
   if [ $ret -ne 0 ];then
     err "Failed to place pacakge:${target%%-STOW*} by stow."
     exit $ret
@@ -592,7 +601,7 @@ function add_package { ## {{{
   execute touch "$current_dir/$target"
 } ## }}}
 
-function rm_package { ## {{{
+rm_package () { ## {{{
   clean=${1:-0}
   if [ -f "${current_dir}/${target}" ];then
     cd_check "$stow_dir"
@@ -604,7 +613,7 @@ function rm_package { ## {{{
   fi
 } ## }}}
 
-function get_list { ## {{{
+get_list () { ## {{{
   get_file_list "$current_dir" "*-STOW-*"|awk '{split($1, tmp, "-STOW-")}{print tmp[1]}'
 } ## }}}
 
@@ -646,11 +655,12 @@ if [ "$cmd" = "cmd" ];then
   dryrun=1
 fi
 
-while getopts c:d:i:t:CfDVvlh OPT;do
+while getopts c:d:i:o:t:CfDVvlh OPT;do
   case $OPT in
     "c" ) conf_file="$OPTARG" ;;
     "d" ) conf_dir=(${OPTARG/,/ } "${conf_dir[@]}");;
     "i" ) set_inst_dir "$OPTARG" ;;
+    "o" ) user_options="$OPTARG" ;;
     "t" ) default_inst_type="$OPTARG" ;;
     "f" ) force=1 ;;
     "D" ) dryrun=1 ;;
@@ -918,7 +928,7 @@ fi
 # }}}
 
 # Main loop {{{
-function mylog {
+mylog () {
   if [ "$verbose" -eq 1 ];then
     "$@"
   else

@@ -1,11 +1,11 @@
 inst_type=tarball
 version_safe=4.2.1
 url_prefix=https://www.mercurial-scm.org/release/
-function make_cmd {
+make_cmd () {
   execute make build
   execute python setup.py install --prefix="$stow_dir/$target" --force
 }
-function get_latest {
+get_latest () {
   local output_detail="${1:-0}"
   local params="$(get_page https://www.mercurial-scm.org/wiki/|grep released|cut -d "(" -f1)"
   version="$(echo "$params"|cut -d " " -f 7)"
