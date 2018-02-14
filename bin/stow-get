@@ -193,6 +193,10 @@ reset_inst_val () { # () {{{
       return $EXIT_NO_VERSION
     fi
   }
+  after_add_package () {
+    :
+  }
+
 } # }}}
 reset_inst_val
 # }}}
@@ -599,6 +603,7 @@ add_package () { ## {{{
   fi
   execute mkdir -p "$current_dir"
   execute touch "$current_dir/$target"
+  execute after_add_package
 } ## }}}
 
 rm_package () { ## {{{

@@ -23,3 +23,6 @@ url_prefix=https://www.python.org/ftp/python/${version}/
 tarball=Python-${version}.tar.xz
 directory=Python-${version}
 stow_option="--defer=2to3"
+#after_add_package () {
+#  curl -kL https://bootstrap.pypa.io/get-pip.py | python
+#}
