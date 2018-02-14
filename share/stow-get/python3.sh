@@ -22,4 +22,4 @@ get_version
 url_prefix=https://www.python.org/ftp/python/${version}/
 tarball=Python-${version}.tar.xz
 directory=Python-${version}
-stow_option="--defer=2to3"
+stow_option="--defer=bin/2to3"
