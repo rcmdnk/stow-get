@@ -4,7 +4,7 @@
 #
 # Package manager with stow.
 #
-STOW_GET_VERSION=v0.3.0
+STOW_GET_VERSION=v0.3.1
 STOW_GET_DATE="7/Mar/2018"
 #
 # }}}
@@ -167,8 +167,13 @@ reset_inst_val () { # () {{{
     :
   }
   configure_cmd () {
-    if [ -x "$configure_file" ];then
-      execute $configure_flags $configure_file --prefix="$stow_dir/$target" $user_options $configure_options
+    cmd="$configure_flags \"$configure_file\" --prefix=\"$stow_dir/$target\" $user_options $configure_options"
+    if [ $dryrun -eq 1 ];then
+      execute "test -f \"$configure_file\" && $cmd"
+    else
+      if [ -x "$configure_file" ];then
+        execute $configure_flags $configure_file --prefix="$stow_dir/$target" $user_options $configure_options
+      fi
     fi
   }
   make_cmd () {
