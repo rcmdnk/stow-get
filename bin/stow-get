@@ -987,9 +987,13 @@ for package in "${packages[@]}";do
   fi
 
   # Install
+  if [ $dryrun -eq 1 ];then
+    mylog echo ""
+    mylog echo "# Installation commands for $target"
+  fi
   mylog stow_install_wrapper
   if [ $ret -eq 0 ];then
-    log="${log}# stow installation\\n"
+    mylog echo "# stow installation"
     mylog add_package
     ret=$?
   fi
