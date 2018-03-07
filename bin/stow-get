@@ -167,9 +167,9 @@ reset_inst_val () { # () {{{
     :
   }
   configure_cmd () {
-    cmd="$configure_flags \"$configure_file\" --prefix=\"$stow_dir/$target\" $user_options $configure_options"
+    local ccmd="$configure_flags \"$configure_file\" --prefix=\"$stow_dir/$target\" $user_options $configure_options"
     if [ $dryrun -eq 1 ];then
-      execute "test -f \"$configure_file\" && $cmd"
+      execute "test -f \"$configure_file\" && $ccmd"
     else
       if [ -x "$configure_file" ];then
         execute $configure_flags $configure_file --prefix="$stow_dir/$target" $user_options $configure_options
@@ -631,8 +631,8 @@ get_list () { ## {{{
 
 # Check argumetns {{{
 
-COMMANDS=(commands install reinstall rm remove uninstall unlink update upgrade list ls packages clean cleanup info latest version license help)
-NEED_ARGS=(commands uninstall info latest)
+COMMANDS=(install reinstall rm remove uninstall unlink update upgrade list ls packages clean cleanup info latest version license help)
+NEED_ARGS=(install uninstall info latest)
 
 if [ "$#" -eq 0 ] || [ "$1" = "help" ] || [ "$1" = "-h" ];then
   echo "$HELP"
@@ -656,9 +656,10 @@ if [ "$cmd" = "rm" ] || [ "$cmd" = "remove" ];then
 fi
 if [ "$cmd" = "uninstall" ];then
   cleanup=1
-  cmd=unlink
+  cmd="unlink"
 fi
 if [ "$cmd" = "reinstall" ];then
+  cmd=install
   force=1
 fi
 if [ "$cmd" = "cmd" ];then
