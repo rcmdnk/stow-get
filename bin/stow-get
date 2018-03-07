@@ -608,7 +608,7 @@ add_package () { ## {{{
   fi
   execute mkdir -p "$current_dir"
   execute touch "$current_dir/$target"
-  execute after_add_package
+  after_add_package
 } ## }}}
 
 rm_package () { ## {{{
@@ -938,7 +938,7 @@ if [ $dryrun -eq 1 ];then
 fi
 # }}}
 
-# Main loop {{{
+# Installation {{{
 mylog () {
   if [ "$verbose" -eq 1 ];then
     "$@"
@@ -955,40 +955,39 @@ for package in "${packages[@]}";do
     export PATH=$stow_dir/$target/bin:$PATH
   fi
 
-  if [ "$cmd" != "commands" ];then
-    banner "Installing $stow_dir/$target"
-    if [ -d "$stow_dir/$target" ];then
-      banner_v "$target was already installed."
-      if [ "$force" -eq 1 ];then
-        banner_v "Reinstall $target."
+  banner "Installing $stow_dir/$target"
+  if [ -d "$stow_dir/$target" ];then
+    banner_v "$target was already installed."
+    if [ "$force" -eq 1 ];then
+      banner_v "Reinstall $target."
+      if [ $dryrun -ne 1 ];then
         mylog rm_package
-      else
-        if [ ! -f "$current_dir/$target" ];then
-          mylog add_package
-        fi
-        if [ $dryrun -eq 1 ];then
-          printf "$log"
-        fi
-        continue
       fi
     else
-      # Uninstall old package
-      current_package=$(get_file_list "$current_dir" "${package}-STOW-*")
-      if [ "$current_package" != "" ];then
-        target_tmp=$target
-        for p in ${current_package};do
-          target=$p
-          mylog rm_package 1
-        done
-        target=$target_tmp
+      if [ ! -f "$current_dir/$target" ];then
+        if [ $dryrun -ne 1 ];then
+          mylog add_package
+          continue
+        fi
       fi
     fi
-  else
-    banner "Install commands for $package"
+  fi
+
+  # Uninstall old package
+  if [ $dryrun -ne 1 ];then
+    current_package=$(get_file_list "$current_dir" "${package}-STOW-*")
+    if [ "$current_package" != "" ];then
+      target_tmp=$target
+      for p in ${current_package};do
+        target=$p
+        mylog rm_package 1
+      done
+      target=$target_tmp
+    fi
   fi
 
   # Install
-  mylog  stow_install_wrapper
+  mylog stow_install_wrapper
   if [ $ret -eq 0 ];then
     log="${log}# stow installation\\n"
     mylog add_package
