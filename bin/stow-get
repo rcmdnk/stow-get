@@ -4,8 +4,8 @@
 #
 # Package manager with stow.
 #
-STOW_GET_VERSION=v0.2.1
-STOW_GET_DATE="14/Feb/2018"
+STOW_GET_VERSION=v0.3.0
+STOW_GET_DATE="7/Mar/2018"
 #
 # }}}
 
@@ -89,7 +89,7 @@ Sub commands:
                   Like uninstall, but remain files. (install will be done w/o download codes.)
    upgrade/update [package [package...]]
                   Upgrade packages (all packages in the list if no package is given).
-   list           List up installed packages.
+   list/ls        List up installed packages.
    packages       List up available packages which have configuration files.
    clean/cleanup  Clean up old packages
    info <package> Show configuration file of package.
@@ -626,7 +626,7 @@ get_list () { ## {{{
 
 # Check argumetns {{{
 
-COMMANDS=(commands install reinstall rm remove uninstall unlink update upgrade list packages clean cleanup info latest version license help)
+COMMANDS=(commands install reinstall rm remove uninstall unlink update upgrade list ls packages clean cleanup info latest version license help)
 NEED_ARGS=(commands uninstall info latest)
 
 if [ "$#" -eq 0 ] || [ "$1" = "help" ] || [ "$1" = "-h" ];then
@@ -781,7 +781,7 @@ fi
 # }}}
 
 # List {{{
-if [ "$cmd" = "list" ];then
+if [ "$cmd" = "list" ] || [ "$cmd" = "ls" ];then
   pac_list=$(get_list)
   if [ -t 1 ];then
     echo "$pac_list"|column
