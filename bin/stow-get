@@ -225,15 +225,15 @@ banner_v () { ## {{{
 } ## }}}
 
 warn () { ## {{{
-  printf "\e[33m"
+  printf "\\e[33m"
   banner "WARNING: $*"
-  printf "\e[m"
+  printf "\\e[m"
 } ## }}}
 
 err () { ## {{{
-  printf "\e[31m" 1>&2
+  printf "\\e[31m" 1>&2
   banner "ERROR: $*" 1>&2
-  printf "\e[m" 1>&2
+  printf "\\e[m" 1>&2
   return 1
 } ## }}}
 
@@ -821,12 +821,11 @@ fi
 # }}}
 
 # Check necessary packages {{{
-necessary_packages=(stow)
-for p in "${necessary_packages[@]}";do
-  if ! check_bin "$p";then
-    packages=("$p" "${packages[@]}")
+if ! check_bin stow;then
+  if ! echo " ${packages[*]} "|grep -q " stow ";then
+    packages=(stow "${packages[@]}")
   fi
-done
+fi
 # }}}
 
 # Unlink/Uninstall {{{
@@ -964,11 +963,11 @@ for package in "${packages[@]}";do
         mylog rm_package
       fi
     else
-      if [ ! -f "$current_dir/$target" ];then
-        if [ $dryrun -ne 1 ];then
+      if [ $dryrun -ne 1 ];then
+        if [ ! -f "$current_dir/$target" ];then
           mylog add_package
-          continue
         fi
+        continue
       fi
     fi
   fi
