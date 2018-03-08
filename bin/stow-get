@@ -632,7 +632,7 @@ get_list () { ## {{{
 # Check argumetns {{{
 
 COMMANDS=(install reinstall rm remove uninstall unlink update upgrade list ls packages clean cleanup info latest version license help)
-NEED_ARGS=(install uninstall info latest)
+NEED_ARGS=(uninstall info latest)
 
 if [ "$#" -eq 0 ] || [ "$1" = "help" ] || [ "$1" = "-h" ];then
   echo "$HELP"
