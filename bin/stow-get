@@ -963,11 +963,11 @@ for package in "${packages[@]}";do
         mylog rm_package
       fi
     else
-      if [ ! -f "$current_dir/$target" ];then
-        if [ $dryrun -ne 1 ];then
+      if [ $dryrun -ne 1 ];then
+        if [ ! -f "$current_dir/$target" ];then
           mylog add_package
-          continue
         fi
+        continue
       fi
     fi
   fi
