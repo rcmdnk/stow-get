@@ -13,4 +13,4 @@ install:
   - export LD_LIBRARY_PATH="$INST_DIR/lib64:$INST_DIR/lib:$LD_LIBRARY_PATH"
 script:
   - which texi2html
-  - travis_wait 60 ./bin/stow-get -V install $PACKAGE
+  - travis_wait 60 ./bin/stow-get install -V $PACKAGE
