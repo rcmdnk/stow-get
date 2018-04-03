@@ -4,8 +4,8 @@
 #
 # Package manager with stow.
 #
-STOW_GET_VERSION=v0.3.1
-STOW_GET_DATE="7/Mar/2018"
+STOW_GET_VERSION=v0.3.2
+STOW_GET_DATE="3/Apr/2018"
 #
 # }}}
 
@@ -421,10 +421,10 @@ init_tarball () { ## {{{
 
       cd_check "$directory" 1
       if [ $ret -ne 0 ];then
-        directory=$(find . -type d -maxdepth 1 -mindepth 1 -name "*$version*"|head -n1)
+        directory=$(find -H . -type d -maxdepth 1 -mindepth 1 -name "*$version*"|head -n1)
         cd_check "$directory" 1
         if [ $ret -ne 0 ];then
-          directory=$(find . -type d -maxdepth 1 -mindepth 1 -name "*$package*"|head -n1)
+          directory=$(find -H . -type d -maxdepth 1 -mindepth 1 -name "*$package*"|head -n1)
           cd_check "$directory" 1
           if [ $ret -ne 0 ];then
             return $ret
@@ -587,15 +587,15 @@ xargs_wrapper () { ## {{{
 } ## }}}
 
 get_file_dir_list () { ## {{{
-  find "$1" -maxdepth 1 -mindepth 1 -name "$2" -print0 2>/dev/null|xargs_wrapper -0 -n1 basename
+  find -H "$1" -maxdepth 1 -mindepth 1 -name "$2" -print0 2>/dev/null|xargs_wrapper -0 -n1 basename
 } ## }}}
 
 get_file_list () { ## {{{
-  find "$1" -maxdepth 1 -mindepth 1 -type f -name "$2" -print0 2>/dev/null|xargs_wrapper -0 -n1 basename
+  find -H "$1" -maxdepth 1 -mindepth 1 -type f -name "$2" -print0 2>/dev/null|xargs_wrapper -0 -n1 basename
 } ## }}}
 
 get_dir_list () { ## {{{
-  find "$1" -maxdepth 1 -mindepth 1 -type d -name "$2" -print0 2>/dev/null|xargs_wrapper -0 -n1 basename
+  find -H "$1" -maxdepth 1 -mindepth 1 -type d -name "$2" -print0 2>/dev/null|xargs_wrapper -0 -n1 basename
 } ## }}}
 
 add_package () { ## {{{
