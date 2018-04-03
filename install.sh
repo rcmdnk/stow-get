@@ -44,14 +44,31 @@ trap 'rm -rf "$TMP_DIR"' EXIT HUP INT QUIT ABRT SEGV TERM
 cd "$TMP_DIR"
 
 # Get temporary stow-get
+installed=0
 if type -a git >& /dev/null;then
   git clone $git
+  if [ $? -eq 0 ];then
+    installed=1
+  fi
+fi
+if [ $installed -eq 1 ];then
   cd $repo
 elif type -a wget >& /dev/null;then
+  mkdir -p bin share/$repo
+  wget --no-check-certificate -O ./bin/stow-get $raw/bin/stow-get
+  chmod 755 bin/stow-get
+  wget --no-check-certificate -O ./share/stow-get/stow-get.sh $raw/share/stow-get/stow-get.sh
+  wget --no-check-certificate -O ./share/stow-get/stow.sh $raw/share/stow-get/stow.sh
+elif type -a curl >& /dev/null;then
   mkdir -p bin share/$repo
   curl -fsSL -o ./bin/stow-get $raw/bin/stow-get
   chmod 755 bin/stow-get
   curl -fsSL -o ./share/stow-get/stow-get.sh $raw/share/stow-get/stow-get.sh
+  curl -fsSL -o ./share/stow-get/stow.sh $raw/share/stow-get/stow.sh
+fi
+
+if [ $? -ne 0 ];then
+  echo "sorry, stow-get can not be installed."
 fi
 
 # Install stow-get
