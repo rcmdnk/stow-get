@@ -48,7 +48,7 @@ if type -a git >& /dev/null;then
   git clone $git
   cd $repo
 elif type -a wget >& /dev/null;then
-  mkdir -P bin share/$repo
+  mkdir -p bin share/$repo
   curl -fsSL -o ./bin/stow-get $raw/bin/stow-get
   chmod 755 bin/stow-get
   curl -fsSL -o ./share/stow-get/stow-get.sh $raw/share/stow-get/stow-get.sh
