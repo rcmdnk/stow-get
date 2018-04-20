@@ -627,6 +627,22 @@ get_list () { ## {{{
   get_file_list "$current_dir" "*-STOW-*"|awk '{split($1, tmp, "-STOW-")}{print tmp[1]}'
 } ## }}}
 
+
+append_package () { ## {{{
+  p=$1
+  if ! echo " ${packages[*]} "|grep -q " $p ";then
+    packages=("${packages[@]}" "$p")
+  fi
+} ## }}}
+
+prepend_package () { ## {{{
+  p=$1
+  if echo " ${packages[*]} "|grep -q " $p ";then
+    packages=($(echo " ${packages[*]} "|sed "s/ $p / /"))
+  fi
+  packages=("$p" "${packages[@]}")
+} ## }}}
+
 # }}} functions
 
 # Check argumetns {{{
