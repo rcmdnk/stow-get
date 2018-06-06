@@ -1,4 +1,4 @@
-inst_type=tarball
+inst_type=direct
 get_latest () {
   local output_detail="${1:-0}"
   local url="https://golang.org/dl/"
@@ -17,6 +17,3 @@ elif [[ "$OSTYPE" =~ darwin ]];then
   echo Cant install go for OSX by stow-get
   exit 1
 fi
-make_cmd () {
-  execute mkdir -p "$stow_dir" && execute cp -r . "$stow_dir/$target"
-}

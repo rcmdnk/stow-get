@@ -452,6 +452,13 @@ init_tarball () { ## {{{
   fi
 } ## }}}
 
+init_direct () { ## {{{
+  configure_file=""
+  make_cmd () {
+    execute mkdir -p "$stow_dir" && execute cp -r . "$stow_dir/$target"
+  }
+} ## }}}
+
 init_gnu () { ## {{{
   url_prefix=${url_prefix:-http://ftp.gnu.org/gnu/$package}
   init_tarball
@@ -471,10 +478,7 @@ init_github () { ## {{{
 } ## }}}
 
 init_github_direct () { ## {{{
-  configure_file=""
-  make_cmd () {
-    execute mkdir -p "$stow_dir" && execute cp -r . "$stow_dir/$target"
-  }
+  init_direct
   init_github
 } ## }}}
 
