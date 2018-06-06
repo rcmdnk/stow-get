@@ -413,7 +413,7 @@ init_tarball () { ## {{{
   tarball=${tarball:-${directory}.tar.gz}
 
   if ! check_bin stow_install;then
-    function stow_install {
+    stow_install () {
       get_tarball "$url_prefix/$tarball"
       if [ $ret -ne 0 ];then
         return $ret
@@ -470,7 +470,7 @@ init_github () { ## {{{
 
 init_github_direct () { ## {{{
   configure_file=""
-  function make_cmd {
+  make_cmd () {
     execute mkdir -p "$stow_dir" && execute cp -r . "$stow_dir/$target"
   }
   init_github
@@ -758,17 +758,17 @@ fi
 
 # Check downloader {{{
 if check_bin wget;then
-  function download {
+  download () {
     execute wget --no-check-certificate "$1"
   }
-  function get_page {
+  get_page () {
     wget --no-check-certificate -O - "$1" 2>/dev/null
   }
 elif check_bin curl;then
-  function download {
+  download () {
     execute curl -k -L -O "$1"
   }
-  function get_page {
+  get_page () {
     curl -k "$1" 2>/dev/null
   }
 else
