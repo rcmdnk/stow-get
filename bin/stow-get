@@ -177,7 +177,9 @@ reset_inst_val () { # () {{{
     fi
   }
   make_cmd () {
-    execute make all && execute make install
+    if [ -f Makefile ] || [ -f GNUmakefile ];then
+      execute make all && execute make install
+    fi
   }
   get_latest () {
     if [ "$index_for_latest" != "" ];then
