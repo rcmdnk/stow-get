@@ -1,2 +1,2 @@
 inst_type=gnu
-bin_dep(autoconf)
+bin_dep=(autoconf)
